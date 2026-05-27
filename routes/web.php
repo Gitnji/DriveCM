@@ -29,7 +29,7 @@ Route::middleware(['must.change.password'])->group(function () {
         ->name('password.update');
 });
 
-// --- Dashboard placeholders (real dashboards come later; named routes needed now) ---
+// --- Dashboard placeholders ---
 Route::get('/admin/dashboard', [\App\Http\Controllers\DashboardController::class, 'admin'])
     ->name('admin.dashboard')
     ->middleware(['auth:admin', 'must.change.password', 'no.cache']);
@@ -38,21 +38,32 @@ Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'ten
     ->name('dashboard')
     ->middleware(['auth:web', 'must.change.password', 'no.cache']);
 
+// --- Central: admin application review (REG-2) ---
+Route::middleware(['auth:admin', 'no.cache'])->group(function () {
+    Route::get('/admin/applications', [\App\Http\Controllers\Admin\ApplicationController::class, 'index'])
+        ->name('admin.applications.index');
+    Route::get('/admin/applications/{tenant}', [\App\Http\Controllers\Admin\ApplicationController::class, 'show'])
+        ->name('admin.applications.show');
+    Route::post('/admin/applications/{tenant}/approve', [\App\Http\Controllers\Admin\ApplicationController::class, 'approve'])
+        ->name('admin.applications.approve');
+    Route::get('/admin/applications/{tenant}/approved', [\App\Http\Controllers\Admin\ApplicationController::class, 'approved'])
+        ->name('admin.applications.approved');
+    Route::post('/admin/applications/{tenant}/reject', [\App\Http\Controllers\Admin\ApplicationController::class, 'reject'])
+        ->name('admin.applications.reject');
+});
 
-
-    // --- Theory LMS: authoring (owner + instructor) ---
+// --- Tenant: LMS (auth:web, all under the same group) ---
 Route::middleware(['auth:web', 'must.change.password', 'no.cache'])->group(function () {
+
+    // Levels
     Route::get('/lms/levels', [\App\Http\Controllers\Lms\LevelController::class, 'index'])
-        ->name('lms.levels.index')
-        ->middleware('can:manage-levels');
+        ->name('lms.levels.index')->middleware('can:manage-levels');
     Route::put('/lms/levels/{level}', [\App\Http\Controllers\Lms\LevelController::class, 'update'])
-        ->name('lms.levels.update')
-        ->middleware('can:manage-levels');
-        // Theory LMS: lesson authoring (owner + instructor)
+        ->name('lms.levels.update')->middleware('can:manage-levels');
+
+    // Lessons (authoring)
     Route::get('/lms/lessons', [\App\Http\Controllers\Lms\LessonController::class, 'index'])
         ->name('lms.lessons.index')->middleware('can:author-lessons');
-    Route::get('/my-lessons/{lesson}', [\App\Http\Controllers\StudentLessonController::class, 'show'])
-        ->name('student.lessons.show')->middleware('can:access-student-lessons');
     Route::get('/lms/lessons/create', [\App\Http\Controllers\Lms\LessonController::class, 'create'])
         ->name('lms.lessons.create')->middleware('can:author-lessons');
     Route::post('/lms/lessons', [\App\Http\Controllers\Lms\LessonController::class, 'store'])
@@ -63,25 +74,20 @@ Route::middleware(['auth:web', 'must.change.password', 'no.cache'])->group(funct
         ->name('lms.lessons.update')->middleware('can:author-lessons');
     Route::delete('/lms/lessons/{lesson}', [\App\Http\Controllers\Lms\LessonController::class, 'destroy'])
         ->name('lms.lessons.destroy')->middleware('can:author-lessons');
-    Route::get('/my-practical', [\App\Http\Controllers\StudentLessonController::class, 'practical'])
-        ->name('student.practical.index')->middleware('can:access-student-lessons');
-        // Practical lessons — scheduling (P1)
-    Route::get('/lms/practical', [\App\Http\Controllers\Lms\PracticalSessionController::class, 'index'])
-        ->name('lms.practical.index')->middleware('can:schedule-practical');
-    Route::get('/lms/practical/create', [\App\Http\Controllers\Lms\PracticalSessionController::class, 'create'])
-        ->name('lms.practical.create')->middleware('can:schedule-practical');
-    Route::post('/lms/practical', [\App\Http\Controllers\Lms\PracticalSessionController::class, 'store'])
-        ->name('lms.practical.store')->middleware('can:schedule-practical');
-        // Theory LMS: image uploads (owner + instructor)
+
+    // Uploads (authoring)
     Route::get('/lms/uploads/test', fn () => view('lms.uploads.test'))
         ->name('lms.uploads.test')->middleware('can:author-lessons');
     Route::post('/lms/uploads', [\App\Http\Controllers\Lms\UploadController::class, 'store'])
         ->name('lms.uploads.store')->middleware('can:author-lessons');
     Route::get('/lms/uploads/{upload}', [\App\Http\Controllers\Lms\ServeUploadController::class, 'show'])
         ->name('lms.uploads.show');
+
+    // Editor test harness
     Route::get('/lms/editor-test', fn () => view('lms.editor-test'))
         ->name('lms.editor.test')->middleware('can:author-lessons');
-        // Theory LMS: question authoring (owner + instructor)
+
+    // Questions
     Route::get('/lms/lessons/{lesson}/questions', [\App\Http\Controllers\Lms\QuestionController::class, 'index'])
         ->name('lms.questions.index')->middleware('can:author-lessons');
     Route::post('/lms/lessons/{lesson}/questions', [\App\Http\Controllers\Lms\QuestionController::class, 'store'])
@@ -90,8 +96,30 @@ Route::middleware(['auth:web', 'must.change.password', 'no.cache'])->group(funct
         ->name('lms.questions.update')->middleware('can:author-lessons');
     Route::delete('/lms/lessons/{lesson}/questions/{question}', [\App\Http\Controllers\Lms\QuestionController::class, 'destroy'])
         ->name('lms.questions.destroy')->middleware('can:author-lessons');
+
+    // Practical sessions (staff)
+    Route::get('/lms/practical', [\App\Http\Controllers\Lms\PracticalSessionController::class, 'index'])
+        ->name('lms.practical.index')->middleware('can:schedule-practical');
+    Route::get('/lms/practical/create', [\App\Http\Controllers\Lms\PracticalSessionController::class, 'create'])
+        ->name('lms.practical.create')->middleware('can:schedule-practical');
+    Route::post('/lms/practical', [\App\Http\Controllers\Lms\PracticalSessionController::class, 'store'])
+        ->name('lms.practical.store')->middleware('can:schedule-practical');
+    Route::put('/lms/practical/{session}/mark', [\App\Http\Controllers\Lms\PracticalSessionController::class, 'mark'])
+        ->name('lms.practical.mark')->middleware('can:schedule-practical');
+
+    // Reports (Ministry license hours)
+    Route::get('/lms/reports', [\App\Http\Controllers\Lms\ReportController::class, 'index'])
+        ->name('lms.reports.index')->middleware('can:preview-reports');
+    Route::post('/lms/reports/{student}/validate', [\App\Http\Controllers\Lms\ReportController::class, 'validate'])
+        ->name('lms.reports.validate')->middleware('can:validate-reports');
+    Route::get('/lms/reports/{student}/export', [\App\Http\Controllers\Lms\ReportController::class, 'export'])
+        ->name('lms.reports.export')->middleware('can:preview-reports');
+
+    // Student-facing
     Route::get('/my-lessons', [\App\Http\Controllers\StudentLessonController::class, 'index'])
         ->name('student.lessons.index')->middleware('can:access-student-lessons');
+    Route::get('/my-lessons/{lesson}', [\App\Http\Controllers\StudentLessonController::class, 'show'])
+        ->name('student.lessons.show')->middleware('can:access-student-lessons');
     Route::get('/my-lessons/{lesson}/test', [\App\Http\Controllers\StudentTestController::class, 'show'])
         ->name('student.test.show')->middleware('can:access-student-lessons');
     Route::post('/my-lessons/{lesson}/test', [\App\Http\Controllers\StudentTestController::class, 'submit'])
@@ -100,13 +128,14 @@ Route::middleware(['auth:web', 'must.change.password', 'no.cache'])->group(funct
         ->name('student.test.finish')->middleware('can:access-student-lessons');
     Route::get('/my-lessons/{lesson}/result/{attempt}', [\App\Http\Controllers\StudentTestController::class, 'result'])
         ->name('student.test.result')->middleware('can:access-student-lessons');
-    Route::put('/lms/practical/{session}/mark', [\App\Http\Controllers\Lms\PracticalSessionController::class, 'mark'])
-        ->name('lms.practical.mark')->middleware('can:schedule-practical');
-        // Ministry license hours reports
-    Route::get('/lms/reports', [\App\Http\Controllers\Lms\ReportController::class, 'index'])
-        ->name('lms.reports.index')->middleware('can:preview-reports');
-    Route::post('/lms/reports/{student}/validate', [\App\Http\Controllers\Lms\ReportController::class, 'validate'])
-        ->name('lms.reports.validate')->middleware('can:validate-reports');
-    Route::get('/lms/reports/{student}/export', [\App\Http\Controllers\Lms\ReportController::class, 'export'])
-        ->name('lms.reports.export')->middleware('can:preview-reports');
+    Route::get('/my-practical', [\App\Http\Controllers\StudentLessonController::class, 'practical'])
+        ->name('student.practical.index')->middleware('can:access-student-lessons');
+
 });
+
+// --- Public school application (D15, D101) ---
+Route::get('/apply', [\App\Http\Controllers\ApplicationController::class, 'create'])->name('apply.create');
+Route::post('/apply', [\App\Http\Controllers\ApplicationController::class, 'store'])
+    ->name('apply.store')
+    ->middleware('throttle:5,1');
+Route::get('/apply/submitted', [\App\Http\Controllers\ApplicationController::class, 'submitted'])->name('apply.submitted');

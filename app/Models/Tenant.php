@@ -2,54 +2,35 @@
 
 namespace App\Models;
 
-use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
-use Stancl\Tenancy\Contracts\TenantWithDatabase;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
-class Tenant extends BaseTenant
+class Tenant extends Model
 {
-    // Our real columns are NOT stored in the JSON `data` blob — declare them
-    // so stancl treats them as normal table columns, not virtual columns.
-    public static function getCustomColumns(): array
-    {
-        return [
-            'id',
-            'name',
-            'subdomain',
-            'status',
-            'contact_name',
-            'contact_email',
-            'contact_phone',
-            'submitted_at',
-            'reviewed_at',
-            'reviewed_by',
-            'rejection_reason',
-        ];
-    }
+    protected $keyType = 'string';
+    public $incrementing = false;
+
+    protected $fillable = [
+        'id', 'name', 'subdomain', 'status', 'data',
+        // Application form fields (D95, D96, D102)
+        'contact_name', 'contact_email', 'contact_phone',
+        'applicant_town', 'desired_subdomain',
+        // Review tracking (already in schema; REG-2 will write to these)
+        'submitted_at', 'reviewed_at', 'reviewed_by', 'rejection_reason',
+    ];
 
     protected $casts = [
+        'data' => 'array',
         'submitted_at' => 'datetime',
         'reviewed_at' => 'datetime',
     ];
 
-    // --- Lifecycle helpers (blueprint §1.1: helper methods on the model) ---
-
-    public function isPending(): bool
+    protected static function booted(): void
     {
-        return $this->status === 'pending';
-    }
-
-    public function isApproved(): bool
-    {
-        return $this->status === 'approved';
-    }
-
-    public function isActive(): bool
-    {
-        return $this->status === 'active';
-    }
-
-    public function isRejected(): bool
-    {
-        return $this->status === 'rejected';
+        static::creating(function (Tenant $tenant) {
+            if (empty($tenant->id)) {
+                $tenant->id = (string) Str::uuid();
+            }
+        });
     }
 }

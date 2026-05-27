@@ -11,7 +11,7 @@
     <header class="flex h-16 items-center justify-between border-b border-neutral/10 bg-primary-dark px-4 text-white lg:px-6">
         <span class="text-lg font-bold tracking-tight">Drive<span class="text-accent">CM</span> <span class="text-white/50 font-normal">Admin</span></span>
         <div class="flex items-center gap-3 text-sm">
-            <span class="text-white/70">{{ $admin->name }}</span>
+            <span class="text-white/70">{{ auth('admin')->user()->name }}</span>
             <form method="POST" action="{{ route('admin.login.destroy') }}">
                 @csrf
                 <button type="submit" class="rounded-lg px-3 py-1.5 text-sm font-medium text-white hover:bg-white/10">
