@@ -51,6 +51,8 @@ Route::middleware(['auth:web', 'must.change.password', 'no.cache'])->group(funct
         // Theory LMS: lesson authoring (owner + instructor)
     Route::get('/lms/lessons', [\App\Http\Controllers\Lms\LessonController::class, 'index'])
         ->name('lms.lessons.index')->middleware('can:author-lessons');
+    Route::get('/my-lessons/{lesson}', [\App\Http\Controllers\StudentLessonController::class, 'show'])
+        ->name('student.lessons.show')->middleware('can:access-student-lessons');
     Route::get('/lms/lessons/create', [\App\Http\Controllers\Lms\LessonController::class, 'create'])
         ->name('lms.lessons.create')->middleware('can:author-lessons');
     Route::post('/lms/lessons', [\App\Http\Controllers\Lms\LessonController::class, 'store'])
@@ -67,8 +69,8 @@ Route::middleware(['auth:web', 'must.change.password', 'no.cache'])->group(funct
     Route::post('/lms/uploads', [\App\Http\Controllers\Lms\UploadController::class, 'store'])
         ->name('lms.uploads.store')->middleware('can:author-lessons');
     Route::get('/lms/uploads/{upload}', [\App\Http\Controllers\Lms\ServeUploadController::class, 'show'])
-        ->name('lms.uploads.show')->middleware('can:author-lessons');
-        Route::get('/lms/editor-test', fn () => view('lms.editor-test'))
+        ->name('lms.uploads.show');
+    Route::get('/lms/editor-test', fn () => view('lms.editor-test'))
         ->name('lms.editor.test')->middleware('can:author-lessons');
         // Theory LMS: question authoring (owner + instructor)
     Route::get('/lms/lessons/{lesson}/questions', [\App\Http\Controllers\Lms\QuestionController::class, 'index'])
@@ -79,4 +81,14 @@ Route::middleware(['auth:web', 'must.change.password', 'no.cache'])->group(funct
         ->name('lms.questions.update')->middleware('can:author-lessons');
     Route::delete('/lms/lessons/{lesson}/questions/{question}', [\App\Http\Controllers\Lms\QuestionController::class, 'destroy'])
         ->name('lms.questions.destroy')->middleware('can:author-lessons');
+    Route::get('/my-lessons', [\App\Http\Controllers\StudentLessonController::class, 'index'])
+        ->name('student.lessons.index')->middleware('can:access-student-lessons');
+    Route::get('/my-lessons/{lesson}/test', [\App\Http\Controllers\StudentTestController::class, 'show'])
+        ->name('student.test.show')->middleware('can:access-student-lessons');
+    Route::post('/my-lessons/{lesson}/test', [\App\Http\Controllers\StudentTestController::class, 'submit'])
+        ->name('student.test.submit')->middleware('can:access-student-lessons');
+    Route::post('/my-lessons/{lesson}/finish', [\App\Http\Controllers\StudentTestController::class, 'finish'])
+        ->name('student.test.finish')->middleware('can:access-student-lessons');
+    Route::get('/my-lessons/{lesson}/result/{attempt}', [\App\Http\Controllers\StudentTestController::class, 'result'])
+        ->name('student.test.result')->middleware('can:access-student-lessons');
 });

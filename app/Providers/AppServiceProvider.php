@@ -30,5 +30,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('manage-levels', function (User $user) {
             return $user->canAuthorLessons(); // owner + instructor (D46)
         });
+
+        Gate::define('access-student-lessons', function (User $user) {
+            return $user->isStudent();
+        });
     }
 }
