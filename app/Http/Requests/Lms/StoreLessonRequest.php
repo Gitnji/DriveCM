@@ -16,17 +16,12 @@ class StoreLessonRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (is_string($this->content)) {
-            // Temporary textarea bridge (D50). Normalise smart/curly quotes to
-            // straight quotes before decoding — pasted JSON often arrives with
-            // curly quotes (blueprint §3.2 hazard), which json_decode rejects.
-            $raw = strtr($this->content, [
-                "\u{201C}" => '"', "\u{201D}" => '"',  // curly double quotes
-                "\u{2018}" => "'", "\u{2019}" => "'",  // curly single quotes
-            ]);
+        // Use input() — the magic property $this->content is unreliable on
+        // FormRequest and was returning the raw request body. (D51 amended.)
+        $raw = $this->input('content');
 
+        if (is_string($raw)) {
             $decoded = json_decode($raw, true);
-
             $this->merge([
                 'content' => is_array($decoded) ? $decoded : null,
             ]);

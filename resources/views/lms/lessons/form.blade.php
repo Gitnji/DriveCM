@@ -65,11 +65,24 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-neutral">
-                    Content blocks <span class="text-neutral/40">(JSON — temporary; block editor replaces this in the next batch)</span>
-                </label>
-                <textarea name="content" rows="6"
-                    class="mt-1 w-full rounded-lg border border-neutral/20 px-3 py-2 font-mono text-xs focus:border-primary focus:ring-1 focus:ring-primary">{{ old('content', $isEdit ? json_encode($lesson->content) : '[]') }}</textarea>
+                <label class="block text-sm font-medium text-neutral">Lesson content</label>
+                <div data-block-editor
+                     data-upload-url="{{ route('lms.uploads.store') }}"
+                     data-csrf="{{ csrf_token() }}"
+                     data-initial-blocks="{{ old('content') ?? ($isEdit ? json_encode($lesson->content ?? []) : '[]') }}"
+                     class="mt-1">
+                    <div class="mb-3 flex gap-2">
+                        <button type="button" data-add-block="text"
+                            class="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-dark">+ Text</button>
+                        <button type="button" data-add-block="image"
+                            class="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-dark">+ Image</button>
+                        <button type="button" data-add-block="video"
+                            class="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-dark">+ Video</button>
+                    </div>
+                    <div data-block-list class="space-y-2"></div>
+                    {{-- The editor writes JSON here; this hidden field is what posts (D51 amended). --}}
+                    <textarea data-block-output name="content" class="hidden"></textarea>
+                </div>
             </div>
 
             <button type="submit"

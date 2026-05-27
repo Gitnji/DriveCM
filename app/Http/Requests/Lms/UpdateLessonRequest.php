@@ -16,14 +16,10 @@ class UpdateLessonRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (is_string($this->content)) {
-            $raw = strtr($this->content, [
-                "\u{201C}" => '"', "\u{201D}" => '"',
-                "\u{2018}" => "'", "\u{2019}" => "'",
-            ]);
+        $raw = $this->input('content');
 
+        if (is_string($raw)) {
             $decoded = json_decode($raw, true);
-
             $this->merge([
                 'content' => is_array($decoded) ? $decoded : null,
             ]);

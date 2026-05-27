@@ -68,4 +68,6 @@ Route::middleware(['auth:web', 'must.change.password', 'no.cache'])->group(funct
         ->name('lms.uploads.store')->middleware('can:author-lessons');
     Route::get('/lms/uploads/{upload}', [\App\Http\Controllers\Lms\ServeUploadController::class, 'show'])
         ->name('lms.uploads.show')->middleware('can:author-lessons');
+        Route::get('/lms/editor-test', fn () => view('lms.editor-test'))
+        ->name('lms.editor.test')->middleware('can:author-lessons');
 });

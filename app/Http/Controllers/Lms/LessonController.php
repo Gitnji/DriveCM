@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Lms;
 
+use App\Actions\SanitizeLessonBlocks;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Lms\StoreLessonRequest;
 use App\Http\Requests\Lms\UpdateLessonRequest;
@@ -12,7 +13,6 @@ class LessonController extends Controller
 {
     public function index()
     {
-        // Trait scopes to session tenant. Eager-load level for display.
         $lessons = Lesson::with('level')
             ->orderBy('level_id')
             ->orderBy('position')
@@ -29,10 +29,12 @@ class LessonController extends Controller
         ]);
     }
 
-    public function store(StoreLessonRequest $request)
+    public function store(StoreLessonRequest $request, SanitizeLessonBlocks $sanitizer)
     {
-        // tenant_id auto-filled by the BelongsToTenant trait.
-        Lesson::create($request->validated());
+        $data = $request->validated();
+        $data['content'] = $sanitizer->execute($data['content'] ?? []);
+
+        Lesson::create($data);
 
         return redirect()
             ->route('lms.lessons.index')
@@ -41,16 +43,18 @@ class LessonController extends Controller
 
     public function edit(Lesson $lesson)
     {
-        // Route-model binding + tenant global scope = a foreign lesson 404s.
         return view('lms.lessons.form', [
             'lesson' => $lesson,
             'levels' => Level::orderBy('position')->get(),
         ]);
     }
 
-    public function update(UpdateLessonRequest $request, Lesson $lesson)
+    public function update(UpdateLessonRequest $request, Lesson $lesson, SanitizeLessonBlocks $sanitizer)
     {
-        $lesson->update($request->validated());
+        $data = $request->validated();
+        $data['content'] = $sanitizer->execute($data['content'] ?? []);
+
+        $lesson->update($data);
 
         return redirect()
             ->route('lms.lessons.index')
@@ -59,7 +63,6 @@ class LessonController extends Controller
 
     public function destroy(Lesson $lesson)
     {
-        // questions cascade-delete via the FK (set in the questions migration).
         $lesson->delete();
 
         return redirect()

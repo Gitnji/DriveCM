@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import 'quill/dist/quill.snow.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -15,4 +16,29 @@
     --color-accent: #FF9500;
     --color-neutral: #1F2937;
     --color-surface: #F8FAFC;
+}
+/* Quill — restyled to sit quietly in the DriveCM editor (D27, frontend-design refined register) */
+.ql-toolbar.ql-snow {
+    border-color: var(--color-neutral) / 0.2;
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+    background: var(--color-surface);
+}
+.ql-container.ql-snow {
+    border-color: var(--color-neutral) / 0.2;
+    border-bottom-left-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+    font-family: inherit;
+    font-size: 0.875rem;
+}
+.ql-editor {
+    min-height: 8rem;
+}
+.ql-snow.ql-toolbar button:hover .ql-stroke,
+.ql-snow.ql-toolbar button.ql-active .ql-stroke {
+    stroke: var(--color-primary);
+}
+.ql-snow.ql-toolbar button:hover .ql-fill,
+.ql-snow.ql-toolbar button.ql-active .ql-fill {
+    fill: var(--color-primary);
 }
