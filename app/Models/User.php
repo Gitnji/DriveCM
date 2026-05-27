@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Concerns\BelongsToTenant;
 
 class User extends Authenticatable
 {
-    use Notifiable;
+    use Notifiable, BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',
