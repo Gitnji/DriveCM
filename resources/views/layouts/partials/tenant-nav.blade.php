@@ -34,6 +34,12 @@
             Practical Sessions
         </a>
     @endcan
+    @can('preview-reports')
+        <a href="{{ route('lms.reports.index') }}"
+           class="mt-1 flex items-center rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('lms.reports.*') ? 'bg-primary text-white' : 'text-white/70 hover:bg-primary/40' }}">
+            License Reports
+        </a>
+    @endcan
 
     @php($u = auth()->user())
     <p class="mt-6 px-3 text-xs uppercase tracking-wide text-white/40">

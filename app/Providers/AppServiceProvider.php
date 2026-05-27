@@ -39,5 +39,13 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('schedule-practical', function (User $user) {
             return $user->isOwner() || $user->isInstructor() || $user->isSecretary();
         });
+
+        // Ministry report (D92)
+        Gate::define('preview-reports', function (User $user) {
+            return $user->isOwner() || $user->isSecretary();
+        });
+        Gate::define('validate-reports', function (User $user) {
+            return $user->isOwner(); // D12/D92 — owner only
+        });
     }
 }

@@ -102,4 +102,11 @@ Route::middleware(['auth:web', 'must.change.password', 'no.cache'])->group(funct
         ->name('student.test.result')->middleware('can:access-student-lessons');
     Route::put('/lms/practical/{session}/mark', [\App\Http\Controllers\Lms\PracticalSessionController::class, 'mark'])
         ->name('lms.practical.mark')->middleware('can:schedule-practical');
+        // Ministry license hours reports
+    Route::get('/lms/reports', [\App\Http\Controllers\Lms\ReportController::class, 'index'])
+        ->name('lms.reports.index')->middleware('can:preview-reports');
+    Route::post('/lms/reports/{student}/validate', [\App\Http\Controllers\Lms\ReportController::class, 'validate'])
+        ->name('lms.reports.validate')->middleware('can:validate-reports');
+    Route::get('/lms/reports/{student}/export', [\App\Http\Controllers\Lms\ReportController::class, 'export'])
+        ->name('lms.reports.export')->middleware('can:preview-reports');
 });
