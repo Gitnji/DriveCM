@@ -30,10 +30,10 @@ Route::middleware(['must.change.password'])->group(function () {
 });
 
 // --- Dashboard placeholders (real dashboards come later; named routes needed now) ---
-Route::get('/admin/dashboard', fn () => 'Admin dashboard placeholder')
+Route::get('/admin/dashboard', [\App\Http\Controllers\DashboardController::class, 'admin'])
     ->name('admin.dashboard')
-    ->middleware(['auth:admin', 'must.change.password']);
+    ->middleware(['auth:admin', 'must.change.password', 'no.cache']);
 
-Route::get('/dashboard', fn () => 'Tenant dashboard placeholder')
+Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'tenant'])
     ->name('dashboard')
-    ->middleware(['auth:web', 'must.change.password']);
+    ->middleware(['auth:web', 'must.change.password', 'no.cache']);

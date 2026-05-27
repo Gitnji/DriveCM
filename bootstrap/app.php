@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
     'must.change.password' => \App\Http\Middleware\MustChangePassword::class,
+    'no.cache' => \App\Http\Middleware\NoCacheAuthenticated::class,
 ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
