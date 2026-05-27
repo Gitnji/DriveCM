@@ -31,7 +31,7 @@
                     </svg>
                 </button>
                 <div class="flex items-center gap-3 text-sm">
-                    <span class="text-neutral/70">{{ $user->name }}</span>
+                    <span class="text-neutral/70">{{ auth()->user()->name }}</span>
                     <form method="POST" action="{{ route('login.destroy') }}">
                         @csrf
                         <button type="submit" class="rounded-lg px-3 py-1.5 text-sm font-medium text-primary hover:bg-surface">

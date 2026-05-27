@@ -33,4 +33,8 @@ class Lesson extends Model
     {
         return $this->status === 'draft';
     }
+
+    protected $casts = [
+        'content' => 'array',
+    ];
 }

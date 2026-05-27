@@ -37,3 +37,35 @@ Route::get('/admin/dashboard', [\App\Http\Controllers\DashboardController::class
 Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'tenant'])
     ->name('dashboard')
     ->middleware(['auth:web', 'must.change.password', 'no.cache']);
+
+
+
+    // --- Theory LMS: authoring (owner + instructor) ---
+Route::middleware(['auth:web', 'must.change.password', 'no.cache'])->group(function () {
+    Route::get('/lms/levels', [\App\Http\Controllers\Lms\LevelController::class, 'index'])
+        ->name('lms.levels.index')
+        ->middleware('can:manage-levels');
+    Route::put('/lms/levels/{level}', [\App\Http\Controllers\Lms\LevelController::class, 'update'])
+        ->name('lms.levels.update')
+        ->middleware('can:manage-levels');
+        // Theory LMS: lesson authoring (owner + instructor)
+    Route::get('/lms/lessons', [\App\Http\Controllers\Lms\LessonController::class, 'index'])
+        ->name('lms.lessons.index')->middleware('can:author-lessons');
+    Route::get('/lms/lessons/create', [\App\Http\Controllers\Lms\LessonController::class, 'create'])
+        ->name('lms.lessons.create')->middleware('can:author-lessons');
+    Route::post('/lms/lessons', [\App\Http\Controllers\Lms\LessonController::class, 'store'])
+        ->name('lms.lessons.store')->middleware('can:author-lessons');
+    Route::get('/lms/lessons/{lesson}/edit', [\App\Http\Controllers\Lms\LessonController::class, 'edit'])
+        ->name('lms.lessons.edit')->middleware('can:author-lessons');
+    Route::put('/lms/lessons/{lesson}', [\App\Http\Controllers\Lms\LessonController::class, 'update'])
+        ->name('lms.lessons.update')->middleware('can:author-lessons');
+    Route::delete('/lms/lessons/{lesson}', [\App\Http\Controllers\Lms\LessonController::class, 'destroy'])
+        ->name('lms.lessons.destroy')->middleware('can:author-lessons');
+        // Theory LMS: image uploads (owner + instructor)
+    Route::get('/lms/uploads/test', fn () => view('lms.uploads.test'))
+        ->name('lms.uploads.test')->middleware('can:author-lessons');
+    Route::post('/lms/uploads', [\App\Http\Controllers\Lms\UploadController::class, 'store'])
+        ->name('lms.uploads.store')->middleware('can:author-lessons');
+    Route::get('/lms/uploads/{upload}', [\App\Http\Controllers\Lms\ServeUploadController::class, 'show'])
+        ->name('lms.uploads.show')->middleware('can:author-lessons');
+});

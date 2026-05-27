@@ -4,14 +4,18 @@
         Dashboard
     </a>
 
-    {{--
-        Nav grows per feature (D30, Option A). As each batch lands, it adds its link here, e.g.:
-        - Theory LMS batch:  Lessons  (owner + instructor: author; student: learn)
-        - Students batch:    Students (owner, secretary)
-        - Practical batch:   Schedule
-        - Reports batch:     Reports
-        Each wrapped in the relevant role helper, e.g. @if($u->canAuthorLessons()) ... @endif
-    --}}
+    @can('manage-levels')
+        <a href="{{ route('lms.levels.index') }}"
+           class="mt-1 flex items-center rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('lms.levels.*') ? 'bg-primary text-white' : 'text-white/70 hover:bg-primary/40' }}">
+            Theory Levels
+        </a>
+    @endcan
+    @can('author-lessons')
+        <a href="{{ route('lms.lessons.index') }}"
+           class="mt-1 flex items-center rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('lms.lessons.*') ? 'bg-primary text-white' : 'text-white/70 hover:bg-primary/40' }}">
+            Lessons
+        </a>
+    @endcan
 
     @php($u = auth()->user())
     <p class="mt-6 px-3 text-xs uppercase tracking-wide text-white/40">
