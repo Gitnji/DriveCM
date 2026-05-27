@@ -25,6 +25,7 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
+                        <a href="{{ route('lms.questions.index', $lesson) }}" class="text-sm font-medium text-primary hover:underline">Questions</a>
                         <a href="{{ route('lms.lessons.edit', $lesson) }}" class="text-sm font-medium text-primary hover:underline">Edit</a>
                         <form method="POST" action="{{ route('lms.lessons.destroy', $lesson) }}"
                               onsubmit="return confirm('Delete this lesson?')">

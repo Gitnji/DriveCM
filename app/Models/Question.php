@@ -25,4 +25,14 @@ class Question extends Model
     {
         return $this->hasOne(QuestionOption::class)->where('is_correct', true);
     }
+
+    public function isMcq(): bool
+    {
+        return $this->type === 'mcq';
+    }
+
+    public function isTrueFalse(): bool
+    {
+        return $this->type === 'true_false';
+    }
 }

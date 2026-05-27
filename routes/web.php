@@ -70,4 +70,13 @@ Route::middleware(['auth:web', 'must.change.password', 'no.cache'])->group(funct
         ->name('lms.uploads.show')->middleware('can:author-lessons');
         Route::get('/lms/editor-test', fn () => view('lms.editor-test'))
         ->name('lms.editor.test')->middleware('can:author-lessons');
+        // Theory LMS: question authoring (owner + instructor)
+    Route::get('/lms/lessons/{lesson}/questions', [\App\Http\Controllers\Lms\QuestionController::class, 'index'])
+        ->name('lms.questions.index')->middleware('can:author-lessons');
+    Route::post('/lms/lessons/{lesson}/questions', [\App\Http\Controllers\Lms\QuestionController::class, 'store'])
+        ->name('lms.questions.store')->middleware('can:author-lessons');
+    Route::put('/lms/lessons/{lesson}/questions/{question}', [\App\Http\Controllers\Lms\QuestionController::class, 'update'])
+        ->name('lms.questions.update')->middleware('can:author-lessons');
+    Route::delete('/lms/lessons/{lesson}/questions/{question}', [\App\Http\Controllers\Lms\QuestionController::class, 'destroy'])
+        ->name('lms.questions.destroy')->middleware('can:author-lessons');
 });
