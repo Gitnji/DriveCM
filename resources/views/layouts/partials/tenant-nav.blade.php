@@ -22,6 +22,18 @@
             My Lessons
         </a>
     @endcan
+    @can('access-student-lessons')
+        <a href="{{ route('student.practical.index') }}"
+           class="mt-1 flex items-center rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('student.practical.*') ? 'bg-primary text-white' : 'text-white/70 hover:bg-primary/40' }}">
+            My Practical
+        </a>
+    @endcan
+    @can('schedule-practical')
+        <a href="{{ route('lms.practical.index') }}"
+           class="mt-1 flex items-center rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('lms.practical.*') ? 'bg-primary text-white' : 'text-white/70 hover:bg-primary/40' }}">
+            Practical Sessions
+        </a>
+    @endcan
 
     @php($u = auth()->user())
     <p class="mt-6 px-3 text-xs uppercase tracking-wide text-white/40">

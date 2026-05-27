@@ -8,19 +8,23 @@
         <div class="mt-6 space-y-6">
             @foreach ($tree as $levelRow)
                 @php($level = $levelRow['level'])
+                @php($isEmpty = count($levelRow['lessons']) === 0)
                 <div>
                     <div class="mb-2 flex items-center gap-2">
                         <h2 class="text-sm font-semibold text-neutral">{{ $level->name }}</h2>
-                        @if ($levelRow['state'] === 'complete')
+                        @if ($isEmpty)
+                            {{-- D81 — an empty level is "Coming soon" to the student, not "Complete". --}}
+                            <span class="rounded-full bg-neutral/10 px-2 py-0.5 text-xs font-medium text-neutral/50">Coming soon</span>
+                        @elseif ($levelRow['state'] === 'complete')
                             <span class="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">Complete</span>
                         @elseif ($levelRow['state'] === 'locked')
                             <span class="rounded-full bg-neutral/10 px-2 py-0.5 text-xs font-medium text-neutral/50">Locked</span>
                         @endif
                     </div>
 
-                    @if (count($levelRow['lessons']) === 0)
+                    @if ($isEmpty)
                         <p class="rounded-lg border border-dashed border-neutral/20 p-4 text-center text-xs text-neutral/40">
-                            No lessons in this level yet.
+                            Lessons for this level haven't been added yet.
                         </p>
                     @else
                         <div class="space-y-2">

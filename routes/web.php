@@ -63,6 +63,15 @@ Route::middleware(['auth:web', 'must.change.password', 'no.cache'])->group(funct
         ->name('lms.lessons.update')->middleware('can:author-lessons');
     Route::delete('/lms/lessons/{lesson}', [\App\Http\Controllers\Lms\LessonController::class, 'destroy'])
         ->name('lms.lessons.destroy')->middleware('can:author-lessons');
+    Route::get('/my-practical', [\App\Http\Controllers\StudentLessonController::class, 'practical'])
+        ->name('student.practical.index')->middleware('can:access-student-lessons');
+        // Practical lessons — scheduling (P1)
+    Route::get('/lms/practical', [\App\Http\Controllers\Lms\PracticalSessionController::class, 'index'])
+        ->name('lms.practical.index')->middleware('can:schedule-practical');
+    Route::get('/lms/practical/create', [\App\Http\Controllers\Lms\PracticalSessionController::class, 'create'])
+        ->name('lms.practical.create')->middleware('can:schedule-practical');
+    Route::post('/lms/practical', [\App\Http\Controllers\Lms\PracticalSessionController::class, 'store'])
+        ->name('lms.practical.store')->middleware('can:schedule-practical');
         // Theory LMS: image uploads (owner + instructor)
     Route::get('/lms/uploads/test', fn () => view('lms.uploads.test'))
         ->name('lms.uploads.test')->middleware('can:author-lessons');
@@ -91,4 +100,6 @@ Route::middleware(['auth:web', 'must.change.password', 'no.cache'])->group(funct
         ->name('student.test.finish')->middleware('can:access-student-lessons');
     Route::get('/my-lessons/{lesson}/result/{attempt}', [\App\Http\Controllers\StudentTestController::class, 'result'])
         ->name('student.test.result')->middleware('can:access-student-lessons');
+    Route::put('/lms/practical/{session}/mark', [\App\Http\Controllers\Lms\PracticalSessionController::class, 'mark'])
+        ->name('lms.practical.mark')->middleware('can:schedule-practical');
 });

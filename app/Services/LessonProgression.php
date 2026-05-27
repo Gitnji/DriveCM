@@ -8,23 +8,12 @@ use App\Models\User;
 
 class LessonProgression
 {
-    /**
-     * Build the full progression tree for a student (D72).
-     * Returns an array of levels, each:
-     *   ['level' => Level, 'state' => 'open'|'locked'|'complete',
-     *    'lessons' => [ ['lesson' => Lesson, 'state' => 'completed'|'unlocked'|'locked'], ... ]]
-     *
-     * Rules: D69 (level-gated, linear within level), D70 (published lessons only),
-     * D71 (derived live).
-     */
     public function forStudent(User $student): array
     {
-        // Levels in order, each with only PUBLISHED lessons in order (D70).
         $levels = Level::with(['lessons' => function ($q) {
             $q->where('status', 'published')->orderBy('position');
         }])->orderBy('position')->get();
 
-        // Which lesson ids this student has completed.
         $completedIds = LessonProgress::where('user_id', $student->id)
             ->where('completed', true)
             ->pluck('lesson_id')
@@ -32,7 +21,7 @@ class LessonProgression
         $completed = array_flip($completedIds);
 
         $tree = [];
-        $previousLevelComplete = true; // Level 1 is always open (D69).
+        $previousLevelComplete = true;
 
         foreach ($levels as $level) {
             $levelOpen = $previousLevelComplete;
@@ -40,8 +29,6 @@ class LessonProgression
 
             $lessonRows = [];
             $allPassed = true;
-            // Within an open level, lessons unlock linearly (D69):
-            // a lesson is unlocked if it's the first, or the previous lesson is completed.
             $previousLessonComplete = true;
 
             foreach ($lessons as $lesson) {
@@ -65,7 +52,6 @@ class LessonProgression
                 $previousLessonComplete = $isCompleted;
             }
 
-            // A level with no published lessons counts as complete (nothing to block on).
             $levelComplete = $levelOpen && $allPassed;
 
             $tree[] = [
@@ -80,10 +66,6 @@ class LessonProgression
         return $tree;
     }
 
-    /**
-     * Is one specific lesson unlocked for the student? (Used by S2 to gate opening.)
-     * Looks the lesson up in the full tree — single source of truth.
-     */
     public function isLessonAccessible(User $student, int $lessonId): bool
     {
         foreach ($this->forStudent($student) as $levelRow) {
@@ -93,6 +75,28 @@ class LessonProgression
                 }
             }
         }
-        return false; // lesson not found / not published / locked
+        return false;
+    }
+
+    /**
+     * Has the student completed the first N levels (by position)? (D85 — practical theory gate.)
+     * An empty level counts as complete (D70) — its tree state is 'complete'.
+     */
+    public function hasCompletedFirstLevels(User $student, int $count): bool
+    {
+        $tree = $this->forStudent($student);
+        $firstN = array_slice($tree, 0, $count);
+
+        // Fewer than N levels exist -> treat as not gated-out (don't freeze on missing levels).
+        if (count($firstN) < $count) {
+            return true;
+        }
+
+        foreach ($firstN as $levelRow) {
+            if ($levelRow['state'] !== 'complete') {
+                return false;
+            }
+        }
+        return true;
     }
 }

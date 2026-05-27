@@ -34,5 +34,10 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('access-student-lessons', function (User $user) {
             return $user->isStudent();
         });
+
+        // Practical lessons (D82) — instructor + secretary + owner can schedule & manage.
+        Gate::define('schedule-practical', function (User $user) {
+            return $user->isOwner() || $user->isInstructor() || $user->isSecretary();
+        });
     }
 }
