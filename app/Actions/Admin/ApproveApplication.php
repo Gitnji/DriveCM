@@ -9,27 +9,22 @@ use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Stancl\Tenancy\Database\Models\Domain;
 
 class ApproveApplication
 {
     public function __construct(private SeedTenantLevels $seedLevels) {}
 
-    /**
-     * Approve a pending application atomically (D97, D105).
-     * Returns ['tenant' => Tenant, 'owner_email' => string, 'temp_password' => string].
-     * The temp_password is the plaintext shown to the admin ONCE (D98, D104).
-     */
     public function execute(Tenant $tenant, string $finalSubdomain, Admin $approvedBy): array
     {
         if ($tenant->status !== 'pending') {
             throw new \LogicException('Only a pending application can be approved.');
         }
 
-        // D104 — generate a strong temp password, shown once.
         $tempPassword = Str::random(14);
 
         return DB::transaction(function () use ($tenant, $finalSubdomain, $approvedBy, $tempPassword) {
-            // 1) Activate the tenant (D97) — status + live subdomain.
+            // 1) Activate tenant.
             $tenant->update([
                 'subdomain' => $finalSubdomain,
                 'status' => 'active',
@@ -37,29 +32,37 @@ class ApproveApplication
                 'reviewed_by' => $approvedBy->id,
             ]);
 
-            // 2) Create the School Owner (D23 — must change password on first login).
-            //    The BelongsToTenant trait reads session('tenant_id'); set it for this
-            //    transaction so the owner row, and any tenant-scoped writes (like the
-            //    levels in step 3), correctly attribute to this tenant.
+            // D116 — register the subdomain in stancl's domains table for both dev (.lvh.me)
+            // and production (.drivecm.cm). stancl's subdomain middleware reads from here.
+            // D116 — register the subdomain in stancl's domains table for both dev (.lvh.me)
+            // and production (.drivecm.cm). stancl's subdomain middleware reads from here.
+            // D119 — register the BARE subdomain label. The subdomain middleware strips any
+            // base domain (.lvh.me / .drivecm.cm) to the first label, so one bare-label row
+            // serves both dev and prod.
+            Domain::create([
+                'domain' => $finalSubdomain,
+                'tenant_id' => $tenant->id,
+            ]);
+
+            // 2) Create School Owner.
             $previousTenantId = session('tenant_id');
             session(['tenant_id' => $tenant->id]);
 
             $owner = User::create([
                 'name' => $tenant->contact_name,
                 'email' => $tenant->contact_email,
-                'password' => $tempPassword, // model's mutator hashes it
+                'password' => $tempPassword,
                 'role' => 'owner',
                 'language' => 'en',
                 'must_change_password' => true,
             ]);
 
-            // 3) Seed the 5 theory levels for the new tenant (D45).
+            // 3) Seed levels.
             $this->seedLevels->execute($tenant);
 
-            // Restore the prior session tenant context.
             session(['tenant_id' => $previousTenantId]);
 
-            // Audit log (D15 — moderated; the approval itself is recorded).
+            // Audit log.
             AuditLog::create([
                 'tenant_id' => $tenant->id,
                 'actor_type' => 'admin',
