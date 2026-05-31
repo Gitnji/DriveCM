@@ -47,5 +47,10 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('validate-reports', function (User $user) {
             return $user->isOwner(); // D12/D92 — owner only
         });
+
+        // Tenant public site (D130) — owner only.
+        Gate::define('manage-site', function (User $user) {
+            return $user->isOwner();
+        });
     }
 }

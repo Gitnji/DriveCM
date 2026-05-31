@@ -72,4 +72,9 @@ class Tenant extends Model implements TenantContract
             ? $callback($this)
             : $tenancy->runForMultiple([$this], $callback);
     }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
 }

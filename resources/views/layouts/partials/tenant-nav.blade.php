@@ -40,6 +40,12 @@
             License Reports
         </a>
     @endcan
+    @can('manage-site')
+        <a href="{{ route('site.pages.index') }}"
+           class="mt-1 flex items-center rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('site.pages.*') ? 'bg-primary text-white' : 'text-white/70 hover:bg-primary/40' }}">
+            Your Website
+        </a>
+    @endcan
 
     @php($u = auth()->user())
     <p class="mt-6 px-3 text-xs uppercase tracking-wide text-white/40">

@@ -160,5 +160,23 @@ Route::middleware(['tenant.only', 'tenant.resolve', 'tenant.session'])->group(fu
             ->name('student.test.result')->middleware('can:access-student-lessons');
         Route::get('/my-practical', [\App\Http\Controllers\StudentLessonController::class, 'practical'])
             ->name('student.practical.index')->middleware('can:access-student-lessons');
+
+            // Tenant public site management (CMS) — owner only
+        Route::get('/site/pages', [\App\Http\Controllers\Site\PageController::class, 'index'])
+            ->name('site.pages.index')->middleware('can:manage-site');
+        Route::get('/site/pages/create', [\App\Http\Controllers\Site\PageController::class, 'create'])
+            ->name('site.pages.create')->middleware('can:manage-site');
+        Route::post('/site/pages', [\App\Http\Controllers\Site\PageController::class, 'store'])
+            ->name('site.pages.store')->middleware('can:manage-site');
+        Route::get('/site/pages/{page}/edit', [\App\Http\Controllers\Site\PageController::class, 'edit'])
+            ->name('site.pages.edit')->middleware('can:manage-site');
+        Route::put('/site/pages/{page}', [\App\Http\Controllers\Site\PageController::class, 'update'])
+            ->name('site.pages.update')->middleware('can:manage-site');
+        Route::delete('/site/pages/{page}', [\App\Http\Controllers\Site\PageController::class, 'destroy'])
+            ->name('site.pages.destroy')->middleware('can:manage-site');
+        Route::get('/site/pages/{page}/content', [\App\Http\Controllers\Site\PageController::class, 'editContent'])
+            ->name('site.pages.edit-content')->middleware('can:manage-site');
+        Route::put('/site/pages/{page}/content', [\App\Http\Controllers\Site\PageController::class, 'updateContent'])
+            ->name('site.pages.update-content')->middleware('can:manage-site');
     });
 });
