@@ -183,6 +183,11 @@ Route::middleware(['tenant.only', 'tenant.resolve', 'tenant.session'])->group(fu
             ->name('site.pages.edit-content')->middleware('can:manage-site');
         Route::put('/site/pages/{page}/content', [\App\Http\Controllers\Site\PageController::class, 'updateContent'])
             ->name('site.pages.update-content')->middleware('can:manage-site');
+            // Tenant appearance (CMS-4)
+        Route::get('/site/appearance', [\App\Http\Controllers\Site\SiteSettingsController::class, 'edit'])
+            ->name('site.settings.edit')->middleware('can:manage-site');
+        Route::put('/site/appearance', [\App\Http\Controllers\Site\SiteSettingsController::class, 'update'])
+            ->name('site.settings.update')->middleware('can:manage-site');
     });
 
     // 5. Public catch-all — MUST be the last route in this group.
