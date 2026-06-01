@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 // =========================================================================
 
 Route::get('/', [\App\Http\Controllers\ApexController::class, 'show'])
+    ->middleware('only.on.domain:localhost,127.0.0.1,drivecm.cm')
     ->name('apex');
 
 Route::get('/apply', [\App\Http\Controllers\ApplicationController::class, 'create'])
@@ -23,12 +24,10 @@ Route::get('/apply/submitted', [\App\Http\Controllers\ApplicationController::cla
 
 // =========================================================================
 // ADMIN — admin.lvh.me / admin.drivecm.cm (D111)
-// Super Admin auth + admin app. only.on.domain enforces the host restriction.
 // =========================================================================
 
 Route::middleware('only.on.domain:admin.lvh.me,admin.drivecm.cm')->group(function () {
 
-    // Auth
     Route::get('/admin/login', [AdminLoginController::class, 'show'])
         ->name('admin.login')->middleware('guest:admin');
     Route::post('/admin/login', [AdminLoginController::class, 'store'])
@@ -36,12 +35,10 @@ Route::middleware('only.on.domain:admin.lvh.me,admin.drivecm.cm')->group(functio
     Route::post('/admin/logout', [AdminLoginController::class, 'destroy'])
         ->name('admin.login.destroy')->middleware('auth:admin');
 
-    // Authenticated admin
     Route::middleware(['auth:admin', 'no.cache'])->group(function () {
         Route::get('/admin/dashboard', [\App\Http\Controllers\DashboardController::class, 'admin'])
             ->name('admin.dashboard');
 
-        // Application review (REG-2)
         Route::get('/admin/applications', [\App\Http\Controllers\Admin\ApplicationController::class, 'index'])
             ->name('admin.applications.index');
         Route::get('/admin/applications/{tenant}', [\App\Http\Controllers\Admin\ApplicationController::class, 'show'])
@@ -56,14 +53,22 @@ Route::middleware('only.on.domain:admin.lvh.me,admin.drivecm.cm')->group(functio
 });
 
 // =========================================================================
-// TENANT — *.lvh.me / *.drivecm.cm (D109)
-// stancl resolves the tenant; our middleware writes session; LMS app runs.
-// tenant.only blocks these routes from being reached on central domains.
+// TENANT — *.lvh.me / *.drivecm.cm (D109, D126)
+// Routes are listed in the order they are matched:
+//   1. PUBLIC home `/` (D125 — public, no auth)
+//   2. Tenant auth — /login etc.
+//   3. Forced password change
+//   4. Authenticated app (auth:web sub-group)
+//   5. PUBLIC catch-all `/{slug}` (D126 — MUST stay last)
 // =========================================================================
 
 Route::middleware(['tenant.only', 'tenant.resolve', 'tenant.session'])->group(function () {
 
-    // Tenant auth
+    // 1. Public home (D125/D135 — unauthenticated)
+    Route::get('/', [\App\Http\Controllers\Site\PublicPageController::class, 'home'])
+        ->name('tenant.public.home');
+
+    // 2. Tenant auth
     Route::get('/login', [LoginController::class, 'show'])
         ->name('login')->middleware('guest:web');
     Route::post('/login', [LoginController::class, 'store'])
@@ -71,7 +76,7 @@ Route::middleware(['tenant.only', 'tenant.resolve', 'tenant.session'])->group(fu
     Route::post('/logout', [LoginController::class, 'destroy'])
         ->name('login.destroy')->middleware('auth:web');
 
-    // Forced password change (tenant guard)
+    // 3. Forced password change (tenant guard)
     Route::middleware(['must.change.password'])->group(function () {
         Route::get('/password/change', [PasswordChangeController::class, 'show'])
             ->name('password.change');
@@ -79,7 +84,7 @@ Route::middleware(['tenant.only', 'tenant.resolve', 'tenant.session'])->group(fu
             ->name('password.update');
     });
 
-    // Authenticated tenant
+    // 4. Authenticated tenant app
     Route::middleware(['auth:web', 'must.change.password', 'no.cache'])->group(function () {
 
         Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'tenant'])
@@ -161,7 +166,7 @@ Route::middleware(['tenant.only', 'tenant.resolve', 'tenant.session'])->group(fu
         Route::get('/my-practical', [\App\Http\Controllers\StudentLessonController::class, 'practical'])
             ->name('student.practical.index')->middleware('can:access-student-lessons');
 
-            // Tenant public site management (CMS) — owner only
+        // Tenant public site management (CMS) — owner only
         Route::get('/site/pages', [\App\Http\Controllers\Site\PageController::class, 'index'])
             ->name('site.pages.index')->middleware('can:manage-site');
         Route::get('/site/pages/create', [\App\Http\Controllers\Site\PageController::class, 'create'])
@@ -179,4 +184,12 @@ Route::middleware(['tenant.only', 'tenant.resolve', 'tenant.session'])->group(fu
         Route::put('/site/pages/{page}/content', [\App\Http\Controllers\Site\PageController::class, 'updateContent'])
             ->name('site.pages.update-content')->middleware('can:manage-site');
     });
+
+    // 5. Public catch-all — MUST be the last route in this group.
+    // The where() constraint matches the slug regex AND the routes above are checked first
+    // (registration order wins), so /login, /dashboard, /lms/*, /my-lessons etc. are NOT
+    // captured here. Drafts and unknown slugs 404 via the controller (D125).
+    Route::get('/{slug}', [\App\Http\Controllers\Site\PublicPageController::class, 'show'])
+        ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+        ->name('tenant.public.show');
 });
