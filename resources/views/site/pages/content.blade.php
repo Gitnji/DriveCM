@@ -41,6 +41,18 @@
                         class="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-dark">+ Text</button>
                     <button type="button" data-add-block="image"
                         class="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-dark">+ Image</button>
+                    <button type="button" data-add-block="cta"
+                        class="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-dark">+ Call to action</button>
+                    <button type="button" data-add-block="gallery"
+                        class="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-dark">+ Gallery</button>
+                    <button type="button" data-add-block="cards"
+                        class="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-dark">+ Cards</button>
+                    <button type="button" data-add-block="pricing"
+                        class="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-dark">+ Pricing</button>
+                    <button type="button" data-add-block="instructors"
+                        class="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-dark">+ Instructors</button>
+                    <button type="button" data-add-block="contact_map"
+                        class="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-dark">+ Contact</button>
                 </div>
 
                 <div data-block-list class="space-y-2"></div>
