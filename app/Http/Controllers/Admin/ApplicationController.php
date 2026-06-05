@@ -55,8 +55,7 @@ class ApplicationController extends Controller
 
     public function approved(Tenant $tenant)
     {
-        // Read the one-shot credentials flash. If the admin refreshes, it's gone.
-        $credentials = session('credentials'); // session()->reflash() is NOT done — single-view only
+        $credentials = session('credentials');
         if (! $credentials) {
             return redirect()->route('admin.applications.index');
         }
@@ -79,5 +78,46 @@ class ApplicationController extends Controller
 
         return redirect()->route('admin.applications.index')
             ->with('status', __('Application rejected.'));
+    }
+
+    /**
+     * DASH-1d / D162 — export all tenant schools as CSV.
+     * Filename: drivecm-schools-{YYYY-MM-DD}.csv. Streamed (lazy chunks of 200).
+     * UTF-8 BOM prepended so Excel on Windows reads accented school names correctly.
+     */
+    public function exportCsv()
+    {
+        $filename = 'drivecm-schools-' . now()->format('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Cache-Control'       => 'no-store, no-cache',
+            'Pragma'              => 'no-cache',
+        ];
+
+        $columns = [
+            'id', 'name', 'subdomain', 'status',
+            'contact_name', 'contact_email', 'contact_phone',
+            'applicant_town', 'created_at', 'updated_at',
+        ];
+
+        return response()->streamDownload(function () use ($columns) {
+            $out = fopen('php://output', 'w');
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, $columns);
+
+            Tenant::orderBy('created_at', 'desc')
+                ->lazy(200)
+                ->each(function ($t) use ($out, $columns) {
+                    $row = [];
+                    foreach ($columns as $c) {
+                        $row[] = (string) ($t->{$c} ?? '');
+                    }
+                    fputcsv($out, $row);
+                });
+
+            fclose($out);
+        }, $filename, $headers);
     }
 }

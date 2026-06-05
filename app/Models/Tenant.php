@@ -77,4 +77,10 @@ class Tenant extends Model implements TenantContract
     {
         return $this->status === 'active';
     }
+
+    /** D161 — reverse of User::belongsTo(Tenant) for cross-tenant queries. */
+    public function users()
+    {
+        return $this->hasMany(User::class, 'tenant_id');
+    }
 }

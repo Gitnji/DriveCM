@@ -22,6 +22,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant.only' => \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
             'only.on.domain' => \App\Http\Middleware\OnlyOnDomain::class,
         ]);
+
+        // DASH-1b — track last_login_at on every authed web request.
+        // Cheap when not authenticated (early return), throttled to 1/min per user.
+        $middleware->appendToGroup('web', [
+            \App\Http\Middleware\TrackLastLogin::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Friendly 404 for unknown tenant subdomains, not stancl's exception page.

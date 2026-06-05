@@ -47,6 +47,10 @@ Route::middleware('only.on.domain:admin.lvh.me,admin.drivecm.cm')->group(functio
 
         Route::get('/admin/applications', [\App\Http\Controllers\Admin\ApplicationController::class, 'index'])
             ->name('admin.applications.index');
+        // DASH-1d — MUST be before any /admin/applications/{tenant} route; otherwise the
+        // wildcard captures `export.csv` as a tenant ID and the show route 404s.
+        Route::get('/admin/applications/export.csv', [\App\Http\Controllers\Admin\ApplicationController::class, 'exportCsv'])
+            ->name('admin.applications.export');
         Route::get('/admin/applications/{tenant}', [\App\Http\Controllers\Admin\ApplicationController::class, 'show'])
             ->name('admin.applications.show');
         Route::post('/admin/applications/{tenant}/approve', [\App\Http\Controllers\Admin\ApplicationController::class, 'approve'])
