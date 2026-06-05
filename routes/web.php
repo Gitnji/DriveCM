@@ -7,21 +7,27 @@ use Illuminate\Support\Facades\Route;
 
 // =========================================================================
 // APEX — drivecm.cm / localhost / 127.0.0.1
-// Apex placeholder (D112) + public school application (D15, D101).
+// Apex marketing page (D112/D153) + public school application (D15, D101).
+//
+// IMPORTANT: The apex `/` and tenant `/` would collide on URI without ->domain(),
+// because Laravel does NOT use middleware to disambiguate same-verb same-URI routes
+// — the later declaration silently replaces the earlier one. ->domain() declares
+// the route only matches on that host, so each host gets its own `/` route.
 // =========================================================================
 
-Route::get('/', [\App\Http\Controllers\ApexController::class, 'show'])
-    ->middleware('only.on.domain:localhost,127.0.0.1,drivecm.cm')
-    ->name('apex');
+foreach (['localhost', '127.0.0.1', 'drivecm.cm'] as $apexHost) {
+    Route::domain($apexHost)->group(function () {
+        Route::get('/', [\App\Http\Controllers\ApexController::class, 'show'])->name('apex');
 
-Route::get('/apply', [\App\Http\Controllers\ApplicationController::class, 'create'])
-    ->name('apply.create');
-Route::post('/apply', [\App\Http\Controllers\ApplicationController::class, 'store'])
-    ->name('apply.store')
-    ->middleware('throttle:5,1');
-Route::get('/apply/submitted', [\App\Http\Controllers\ApplicationController::class, 'submitted'])
-    ->name('apply.submitted');
-
+        Route::get('/apply', [\App\Http\Controllers\ApplicationController::class, 'create'])
+            ->name('apply.create');
+        Route::post('/apply', [\App\Http\Controllers\ApplicationController::class, 'store'])
+            ->name('apply.store')
+            ->middleware('throttle:5,1');
+        Route::get('/apply/submitted', [\App\Http\Controllers\ApplicationController::class, 'submitted'])
+            ->name('apply.submitted');
+    });
+}
 // =========================================================================
 // ADMIN — admin.lvh.me / admin.drivecm.cm (D111)
 // =========================================================================
