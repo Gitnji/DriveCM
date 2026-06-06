@@ -115,6 +115,24 @@ Route::middleware(['tenant.only', 'tenant.resolve', 'tenant.session'])->group(fu
         Route::put('/lms/levels/{level}', [\App\Http\Controllers\Lms\LevelController::class, 'update'])
             ->name('lms.levels.update')->middleware('can:manage-levels');
 
+        // STAFF (D168) — owner manages secretaries + instructors.
+        Route::get('/lms/staff', [\App\Http\Controllers\Lms\StaffController::class, 'index'])
+            ->name('lms.staff.index')->middleware('can:manage-staff');
+        Route::get('/lms/staff/create', [\App\Http\Controllers\Lms\StaffController::class, 'create'])
+            ->name('lms.staff.create')->middleware('can:manage-staff');
+        Route::post('/lms/staff', [\App\Http\Controllers\Lms\StaffController::class, 'store'])
+            ->name('lms.staff.store')->middleware('can:manage-staff');
+        Route::get('/lms/staff/{staff}/created', [\App\Http\Controllers\Lms\StaffController::class, 'created'])
+            ->name('lms.staff.created')->middleware('can:manage-staff');
+        Route::get('/lms/staff/{staff}/edit', [\App\Http\Controllers\Lms\StaffController::class, 'edit'])
+            ->name('lms.staff.edit')->middleware('can:manage-staff');
+        Route::put('/lms/staff/{staff}', [\App\Http\Controllers\Lms\StaffController::class, 'update'])
+            ->name('lms.staff.update')->middleware('can:manage-staff');
+        Route::delete('/lms/staff/{staff}', [\App\Http\Controllers\Lms\StaffController::class, 'destroy'])
+            ->name('lms.staff.destroy')->middleware('can:manage-staff');
+        Route::post('/lms/staff/{id}/restore', [\App\Http\Controllers\Lms\StaffController::class, 'restore'])
+            ->name('lms.staff.restore')->middleware('can:manage-staff');
+
         // Lessons
         Route::get('/lms/lessons', [\App\Http\Controllers\Lms\LessonController::class, 'index'])
             ->name('lms.lessons.index')->middleware('can:author-lessons');

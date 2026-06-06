@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Concerns\BelongsToTenant;
 
 class User extends Authenticatable
 {
-    use Notifiable, BelongsToTenant;
-
+    use Notifiable, BelongsToTenant, SoftDeletes;
     protected $fillable = [
         'tenant_id',
         'name',

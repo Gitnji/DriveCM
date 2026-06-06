@@ -10,6 +10,12 @@
             Theory Levels
         </a>
     @endcan
+    @can('manage-staff')
+        <a href="{{ route('lms.staff.index') }}"
+           class="mt-1 flex items-center rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('lms.staff.*') ? 'bg-primary text-white' : 'text-white/70 hover:bg-primary/40' }}">
+            Staff
+        </a>
+    @endcan
     @can('author-lessons')
         <a href="{{ route('lms.lessons.index') }}"
            class="mt-1 flex items-center rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('lms.lessons.*') ? 'bg-primary text-white' : 'text-white/70 hover:bg-primary/40' }}">
@@ -58,6 +64,7 @@
             Appearance
         </a>
     @endcan
+    
 
     @php($u = auth()->user())
     <p class="mt-6 px-3 text-xs uppercase tracking-wide text-white/40">
