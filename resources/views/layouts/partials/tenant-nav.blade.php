@@ -46,6 +46,12 @@
             Enrollments
         </a>
     @endcan
+    @can('manage-students')
+        <a href="{{ route('lms.students.index') }}"
+           class="mt-1 flex items-center rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('lms.students.*') ? 'bg-primary text-white' : 'text-white/70 hover:bg-primary/40' }}">
+            Students
+        </a>
+    @endcan
     @can('preview-reports')
         <a href="{{ route('lms.reports.index') }}"
            class="mt-1 flex items-center rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('lms.reports.*') ? 'bg-primary text-white' : 'text-white/70 hover:bg-primary/40' }}">

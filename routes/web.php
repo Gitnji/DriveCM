@@ -237,6 +237,20 @@ Route::middleware(['tenant.only', 'tenant.resolve', 'tenant.session'])->group(fu
             ->name('lms.enrollments.approved')->middleware('can:review-enrollments');
         Route::post('/lms/students/applications/{application}/reject', [\App\Http\Controllers\Lms\EnrollmentController::class, 'reject'])
             ->name('lms.enrollments.reject')->middleware('can:review-enrollments');
+
+        // STUDENT (D169) — owner + secretary manage student roster.
+        Route::get('/lms/students', [\App\Http\Controllers\Lms\StudentController::class, 'index'])
+            ->name('lms.students.index')->middleware('can:manage-students');
+        Route::get('/lms/students/{student}', [\App\Http\Controllers\Lms\StudentController::class, 'show'])
+            ->name('lms.students.show')->middleware('can:manage-students');
+        Route::get('/lms/students/{student}/edit', [\App\Http\Controllers\Lms\StudentController::class, 'edit'])
+            ->name('lms.students.edit')->middleware('can:manage-students');
+        Route::put('/lms/students/{student}', [\App\Http\Controllers\Lms\StudentController::class, 'update'])
+            ->name('lms.students.update')->middleware('can:manage-students');
+        Route::delete('/lms/students/{student}', [\App\Http\Controllers\Lms\StudentController::class, 'destroy'])
+            ->name('lms.students.destroy')->middleware('can:manage-students');
+        Route::post('/lms/students/{id}/restore', [\App\Http\Controllers\Lms\StudentController::class, 'restore'])
+            ->name('lms.students.restore')->middleware('can:manage-students');
     });
 
     // 5. Public catch-all — MUST be the last route in this group.

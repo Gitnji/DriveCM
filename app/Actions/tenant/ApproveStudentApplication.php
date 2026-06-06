@@ -20,24 +20,26 @@ class ApproveStudentApplication
 
         return DB::transaction(function () use ($application, $approvedBy, $tempPassword) {
             // 1) Create student user (D98 — temp password shown once).
+            //    STUDENT (D169) — copy phone + town from the application so they're editable
+            //    on the user profile after onboarding.
             $student = User::create([
                 'tenant_id' => $application->tenant_id,
                 'name'      => $application->name,
                 'email'     => $application->email,
-                'password'  => $tempPassword, // hashed via User::$casts
+                'phone'     => $application->phone,
+                'town'      => $application->town,
+                'password'  => $tempPassword,
                 'role'      => 'student',
                 'language'  => 'en',
                 'must_change_password' => true,
             ]);
 
-            // 2) Mark application approved.
             $application->update([
                 'status'      => 'approved',
                 'reviewed_at' => now(),
                 'reviewed_by' => $approvedBy->id,
             ]);
 
-            // 3) Audit log.
             AuditLog::create([
                 'tenant_id'    => $application->tenant_id,
                 'actor_type'   => 'user',

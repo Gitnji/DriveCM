@@ -60,5 +60,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('manage-staff', function (User $user) {
             return $user->isOwner();
         });
+        // STUDENT (D169) — owner + secretary manage student roster.
+        Gate::define('manage-students', function (User $user) {
+            return $user->isOwner() || $user->isSecretary();
+        });
     }
 }

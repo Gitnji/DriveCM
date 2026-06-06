@@ -14,6 +14,8 @@ class User extends Authenticatable
         'tenant_id',
         'name',
         'email',
+        'phone',                 // STUDENT (D169)
+        'town',                  // STUDENT (D169)
         'password',
         'role',                  // owner | secretary | instructor | student
         'language',              // en | fr
