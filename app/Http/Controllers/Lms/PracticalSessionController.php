@@ -13,13 +13,24 @@ use Illuminate\Support\Facades\Auth;
 
 class PracticalSessionController extends Controller
 {
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
-        $sessions = PracticalSession::with(['student', 'instructor'])
-            ->orderByDesc('scheduled_at')
-            ->get();
+        $query = PracticalSession::with(['student', 'instructor']);
 
-        return view('lms.practical.index', ['sessions' => $sessions]);
+        // DASH-3 + DASH-4 (D167) — filter for "needs attendance" worklist.
+        // Past sessions still in 'scheduled' status (never marked).
+        $filter = $request->query('status');
+        if ($filter === 'needs_attention') {
+            $query->where('status', 'scheduled')
+                  ->where('scheduled_at', '<', now());
+        }
+
+        $sessions = $query->orderByDesc('scheduled_at')->get();
+
+        return view('lms.practical.index', [
+            'sessions' => $sessions,
+            'filter'   => $filter,
+        ]);
     }
 
     public function create()
