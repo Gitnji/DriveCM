@@ -6,6 +6,7 @@ use App\Models\Lesson;
 use App\Models\Page;
 use App\Models\PracticalSession;
 use App\Models\ReportValidation;
+use App\Models\StudentApplication;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -18,27 +19,47 @@ class DashboardController extends Controller
     {
         $user = Auth::guard('web')->user();
 
-        // DASH-2 (D163) — owner-specific dashboard payload. Other roles get the placeholder
-        // shown by the view's role switch (until DASH-3 / DASH-4 ship).
         $stats = null;
-        if ($user && $user->role === 'owner') {
-            $stats = [
-                'students_total'  => User::where('role', 'student')->count(),
-                'students_active' => User::where('role', 'student')
-                    ->where('last_login_at', '>=', now()->subDays(30))
-                    ->count(),
-                'lessons_published' => Lesson::where('status', 'published')->count(),
-                'pages_published'   => Page::where('status', 'published')->count(),
-                'sessions_week'     => PracticalSession::whereBetween('scheduled_at', [
-                    now()->startOfWeek(),
-                    now()->endOfWeek(),
-                ])->count(),
-            ];
+        $today = null;
+
+        if ($user) {
+            if ($user->role === 'owner') {
+                $stats = [
+                    'students_total'  => User::where('role', 'student')->count(),
+                    'students_active' => User::where('role', 'student')
+                        ->where('last_login_at', '>=', now()->subDays(30))
+                        ->count(),
+                    'lessons_published' => Lesson::where('status', 'published')->count(),
+                    'pages_published'   => Page::where('status', 'published')->count(),
+                    'sessions_week'     => PracticalSession::whereBetween('scheduled_at', [
+                        now()->startOfWeek(),
+                        now()->endOfWeek(),
+                    ])->count(),
+                ];
+            } elseif ($user->role === 'secretary') {
+                // DASH-3 (D166) — secretary operational worklist.
+                $stats = [
+                    'sessions_today' => PracticalSession::whereDate('scheduled_at', today())->count(),
+                    // Past sessions still 'scheduled' = forgot to mark attendance.
+                    'sessions_unmarked' => PracticalSession::where('status', 'scheduled')
+                        ->where('scheduled_at', '<', now())->count(),
+                    'pending_applications' => StudentApplication::where('status', 'pending')->count(),
+                    'students_this_month' => User::where('role', 'student')
+                        ->where('created_at', '>=', now()->startOfMonth())->count(),
+                ];
+
+                // Today's schedule for the worklist.
+                $today = PracticalSession::whereDate('scheduled_at', today())
+                    ->with(['student:id,name', 'instructor:id,name'])
+                    ->orderBy('scheduled_at')
+                    ->get();
+            }
         }
 
         return view('dashboard.tenant', [
             'user'  => $user,
             'stats' => $stats,
+            'today' => $today,
         ]);
     }
 
