@@ -14,8 +14,7 @@ class TenantLoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tenant_id' => ['required', 'string', 'exists:tenants,id'],
-            'email' => ['required', 'email'],
+            'email'    => ['required', 'email'],
             'password' => ['required', 'string'],
         ];
     }

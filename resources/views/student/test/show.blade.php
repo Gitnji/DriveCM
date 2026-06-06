@@ -14,9 +14,18 @@
 
         <form method="POST" action="{{ route('student.test.submit', $lesson) }}" class="mt-6 space-y-6">
             @csrf
-
             @foreach ($questions as $i => $question)
                 <div class="rounded-xl border border-neutral/10 bg-white p-5">
+
+                    {{-- P3a — optional question image, rendered above the prompt --}}
+                    @if ($question->image)
+                        <div class="mb-4 flex justify-center">
+                            <img src="{{ route('lms.uploads.show', $question->image) }}"
+                                 alt=""
+                                 class="max-h-64 w-auto rounded-lg border border-neutral/10">
+                        </div>
+                    @endif
+
                     <p class="text-sm font-medium text-neutral">
                         {{ $i + 1 }}. {{ $question->prompt }}
                     </p>

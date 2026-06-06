@@ -9,7 +9,7 @@ class Question extends Model
 {
     use BelongsToTenant;
 
-    protected $fillable = ['tenant_id', 'lesson_id', 'prompt', 'type', 'position'];
+    protected $fillable = ['tenant_id', 'lesson_id', 'prompt', 'type', 'position', 'image_upload_id'];
 
     public function lesson()
     {
@@ -24,6 +24,12 @@ class Question extends Model
     public function correctOption()
     {
         return $this->hasOne(QuestionOption::class)->where('is_correct', true);
+    }
+
+    // P3a — attached image (optional).
+    public function image()
+    {
+        return $this->belongsTo(Upload::class, 'image_upload_id');
     }
 
     public function isMcq(): bool

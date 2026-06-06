@@ -15,14 +15,22 @@
         </div>
 
         @php($answers = $attempt->answers ?? [])
-
         <div class="mt-6 space-y-4">
             @foreach ($questions as $i => $question)
                 @php($chosen = (int) ($answers[$question->id] ?? 0))
                 @php($correctOption = $question->options->firstWhere('is_correct', true))
                 @php($wasCorrect = $correctOption && $chosen === $correctOption->id)
-
                 <div class="rounded-xl border border-neutral/10 bg-white p-5">
+
+                    {{-- P3a — optional question image (matches show.blade.php placement) --}}
+                    @if ($question->image)
+                        <div class="mb-4 flex justify-center">
+                            <img src="{{ route('lms.uploads.show', $question->image) }}"
+                                 alt=""
+                                 class="max-h-64 w-auto rounded-lg border border-neutral/10">
+                        </div>
+                    @endif
+
                     <div class="flex items-start justify-between">
                         <p class="text-sm font-medium text-neutral">{{ $i + 1 }}. {{ $question->prompt }}</p>
                         <span class="ml-3 shrink-0 text-xs font-semibold {{ $wasCorrect ? 'text-success' : 'text-red-600' }}">

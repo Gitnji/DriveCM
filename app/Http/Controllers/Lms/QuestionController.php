@@ -59,29 +59,36 @@ class QuestionController extends Controller
      * For an update, options are replaced wholesale (simplest correct approach for a
      * fully-validated payload).
      */
-    private function saveQuestion(Lesson $lesson, array $payload, ?Question $question): void
+  private function saveQuestion(Lesson $lesson, array $payload, ?Question $question): void
     {
         DB::transaction(function () use ($lesson, $payload, $question) {
+            // P3a — image_upload_id is optional. Cast nullable int if present.
+            $imageId = isset($payload['image_upload_id']) && $payload['image_upload_id'] !== null
+                ? (int) $payload['image_upload_id']
+                : null;
+
             if ($question === null) {
                 $position = ($lesson->questions()->max('position') ?? 0) + 1;
                 $question = $lesson->questions()->create([
-                    'prompt' => $payload['prompt'],
-                    'type' => $payload['type'],
-                    'position' => $position,
+                    'prompt'          => $payload['prompt'],
+                    'type'            => $payload['type'],
+                    'position'        => $position,
+                    'image_upload_id' => $imageId,
                 ]);
             } else {
                 $question->update([
-                    'prompt' => $payload['prompt'],
-                    'type' => $payload['type'],
+                    'prompt'          => $payload['prompt'],
+                    'type'            => $payload['type'],
+                    'image_upload_id' => $imageId,
                 ]);
                 $question->options()->delete(); // replace options wholesale
             }
 
             foreach (array_values($payload['options']) as $i => $opt) {
                 $question->options()->create([
-                    'text' => $opt['text'],
+                    'text'       => $opt['text'],
                     'is_correct' => $opt['is_correct'],
-                    'position' => $i + 1,
+                    'position'   => $i + 1,
                 ]);
             }
         });

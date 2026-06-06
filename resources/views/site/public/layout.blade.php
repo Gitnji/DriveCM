@@ -13,7 +13,9 @@
 <body class="bg-surface text-neutral antialiased">
     {{-- HEADER --}}
     <header class="bg-primary text-white">
-        <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-4">
+        <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-6 py-4">
+
+            {{-- Logo (left) --}}
             <a href="{{ route('tenant.public.home') }}" class="flex items-center gap-2">
                 @if (! empty($siteSettings['logo_url']))
                     <img src="{{ $siteSettings['logo_url'] }}" alt="{{ $tenant->name }}"
@@ -22,8 +24,10 @@
                     <span class="font-bold tracking-tight">{{ $tenant->name }}</span>
                 @endif
             </a>
+
+            {{-- School's own CMS nav (middle) --}}
             @if ($navPages->isNotEmpty())
-                <nav class="flex items-center gap-1 text-sm">
+                <nav class="flex flex-wrap items-center gap-1 text-sm">
                     @foreach ($navPages as $nav)
                         <a href="{{ $nav->is_home ? route('tenant.public.home') : route('tenant.public.show', $nav->slug) }}"
                            class="rounded-lg px-3 py-1.5 hover:bg-white/10 {{ ($page && $page->id === $nav->id) ? 'bg-white/15 font-semibold' : '' }}">
@@ -32,6 +36,18 @@
                     @endforeach
                 </nav>
             @endif
+
+            {{-- DriveCM action group (right) — sign in + apply CTA --}}
+            <div class="flex items-center gap-2 text-sm">
+                <a href="{{ route('login') }}"
+                   class="rounded-lg px-3 py-1.5 text-white/80 hover:bg-white/10 hover:text-white">
+                    Sign in
+                </a>
+                <a href="{{ route('register.create') }}"
+                   class="rounded-lg bg-white px-3 py-1.5 font-semibold text-primary-dark hover:bg-white/90">
+                    Apply to enroll
+                </a>
+            </div>
         </div>
     </header>
 
@@ -58,9 +74,15 @@
             @endif
 
             <div class="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs">
-                <a href="{{ route('register.create') }}" class="font-medium text-primary hover:underline">
-                    Apply to enroll →
-                </a>
+                <div class="flex items-center gap-3">
+                    <a href="{{ route('register.create') }}" class="font-medium text-primary hover:underline">
+                        Apply to enroll →
+                    </a>
+                    <span class="text-neutral/30">·</span>
+                    <a href="{{ route('login') }}" class="font-medium text-neutral/60 hover:text-neutral">
+                        Sign in
+                    </a>
+                </div>
                 <span class="text-neutral/40">
                     Powered by
                     <a href="https://drivecm.cm" class="font-medium text-blue-600 hover:underline">DriveCM</a>

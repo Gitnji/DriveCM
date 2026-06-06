@@ -2,14 +2,20 @@
 
 namespace App\Rules;
 
+use App\Models\Upload;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 
 class QuestionPayload implements ValidationRule
 {
     /**
-     * Validates one question's full structure (D63, D64, D66).
-     * Expects an array: ['type'=>..., 'prompt'=>..., 'options'=>[ ['text'=>..,'is_correct'=>bool], ... ]]
+     * Validates one question's full structure (D63, D64, D66, P3a).
+     * Expects an array: [
+     *   'type'             => 'mcq' | 'true_false',
+     *   'prompt'           => string,
+     *   'options'          => [['text'=>..,'is_correct'=>bool], ...],
+     *   'image_upload_id'  => int | null  (optional, P3a)
+     * ]
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
@@ -30,6 +36,20 @@ class QuestionPayload implements ValidationRule
             return;
         }
 
+        // P3a — image_upload_id is optional. If present, must be int and reference a real
+        // upload in the current tenant (BelongsToTenant scopes Upload::find automatically).
+        if (array_key_exists('image_upload_id', $value) && $value['image_upload_id'] !== null) {
+            $id = $value['image_upload_id'];
+            if (! is_int($id) && ! ctype_digit((string) $id)) {
+                $fail('Question image reference is malformed.');
+                return;
+            }
+            if (! Upload::find((int) $id)) {
+                $fail('The attached image could not be found.');
+                return;
+            }
+        }
+
         $options = $value['options'] ?? null;
         if (! is_array($options)) {
             $fail('The question must have options.');
@@ -38,7 +58,6 @@ class QuestionPayload implements ValidationRule
 
         $count = count($options);
 
-        // D63 — True/False is exactly 2; MCQ is 2-6.
         if ($type === 'true_false' && $count !== 2) {
             $fail('A true/false question must have exactly 2 options.');
             return;
@@ -68,7 +87,6 @@ class QuestionPayload implements ValidationRule
             }
         }
 
-        // D64 — exactly one correct option.
         if ($correctCount !== 1) {
             $fail('Exactly one option must be marked correct.');
             return;

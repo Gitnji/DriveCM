@@ -18,9 +18,9 @@ class StudentTestController extends Controller
         $student = Auth::guard('web')->user();
         abort_unless($progression->isLessonAccessible($student, $lesson->id), 403);
 
-        $questions = $lesson->questions()->with('options')->orderBy('position')->get();
+        // P3a — eager-load image alongside options to avoid N+1.
+        $questions = $lesson->questions()->with(['options', 'image'])->orderBy('position')->get();
 
-        // A test-less lesson has no test page — send back to the lesson.
         if ($questions->isEmpty()) {
             return redirect()->route('student.lessons.show', $lesson);
         }
@@ -35,10 +35,8 @@ class StudentTestController extends Controller
     {
         $student = Auth::guard('web')->user();
         abort_unless($progression->isLessonAccessible($student, $lesson->id), 403);
+        abort_if($lesson->questions()->doesntExist(), 404);
 
-        abort_if($lesson->questions()->doesntExist(), 404); // no test to submit
-
-        // answers arrive as [question_id => option_id]; cast to ints.
         $answers = collect($request->validated()['answers'])
             ->mapWithKeys(fn ($optId, $qId) => [(int) $qId => (int) $optId])
             ->all();
@@ -50,10 +48,9 @@ class StudentTestController extends Controller
 
     public function finish(Lesson $lesson, CompleteLesson $completer, LessonProgression $progression)
     {
-        // D80 — explicit finish for a test-less lesson.
         $student = Auth::guard('web')->user();
         abort_unless($progression->isLessonAccessible($student, $lesson->id), 403);
-        abort_unless($lesson->questions()->doesntExist(), 404); // has a test — not this path
+        abort_unless($lesson->questions()->doesntExist(), 404);
 
         $completer->execute($student, $lesson);
 
@@ -64,16 +61,14 @@ class StudentTestController extends Controller
     public function result(Lesson $lesson, LessonAttempt $attempt)
     {
         $student = Auth::guard('web')->user();
-
-        // The attempt must belong to this student and this lesson.
         abort_unless(
             $attempt->user_id === $student->id && $attempt->lesson_id === $lesson->id,
             403
         );
 
-        $questions = $lesson->questions()->with('options')->orderBy('position')->get();
+        // P3a — eager-load image so the result page can show images alongside questions.
+        $questions = $lesson->questions()->with(['options', 'image'])->orderBy('position')->get();
 
-        // D77 — full answers only once the student has PASSED this lesson (any attempt).
         $hasPassed = LessonProgress::where('user_id', $student->id)
             ->where('lesson_id', $lesson->id)
             ->value('completed') ?? false;

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
 class PasswordChangeController extends Controller
@@ -21,13 +22,19 @@ class PasswordChangeController extends Controller
             'password' => ['required', 'confirmed', Password::min(8)],
         ]);
 
-        // Whichever guard is logged in
         $user = Auth::guard('web')->user() ?? Auth::guard('admin')->user();
-
         abort_if($user === null, 403);
 
+        // P1 — reject if the new password matches the current one.
+        // Hash::check compares the plaintext new password against the stored hash.
+        if (Hash::check($request->input('password'), $user->password)) {
+            return back()
+                ->withErrors(['password' => __('Your new password cannot be the same as your current password.')])
+                ->withInput($request->only('password_confirmation')); // never re-fill password fields
+        }
+
         $user->password = $request->input('password'); // 'hashed' cast hashes it
-        $user->must_change_password = false;           // explicit (D23)
+        $user->must_change_password = false;
         $user->save();
 
         AuditLog::create([
