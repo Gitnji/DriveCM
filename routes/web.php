@@ -78,6 +78,15 @@ Route::middleware(['tenant.only', 'tenant.resolve', 'tenant.session'])->group(fu
     Route::get('/', [\App\Http\Controllers\Site\PublicPageController::class, 'home'])
         ->name('tenant.public.home');
 
+    // Public student registration (ENROLL-2 — D164). Open form on tenant subdomain.
+    Route::get('/register', [\App\Http\Controllers\StudentRegistrationController::class, 'create'])
+        ->name('register.create');
+    Route::post('/register', [\App\Http\Controllers\StudentRegistrationController::class, 'store'])
+        ->name('register.store')
+        ->middleware('throttle:5,1');
+    Route::get('/register/submitted', [\App\Http\Controllers\StudentRegistrationController::class, 'submitted'])
+        ->name('register.submitted');
+
     // 2. Tenant auth
     Route::get('/login', [LoginController::class, 'show'])
         ->name('login')->middleware('guest:web');
@@ -198,6 +207,18 @@ Route::middleware(['tenant.only', 'tenant.resolve', 'tenant.session'])->group(fu
             ->name('site.settings.edit')->middleware('can:manage-site');
         Route::put('/site/appearance', [\App\Http\Controllers\Site\SiteSettingsController::class, 'update'])
             ->name('site.settings.update')->middleware('can:manage-site');
+
+        // ENROLL-3 — student application review queue (owner + secretary).
+        Route::get('/lms/students/applications', [\App\Http\Controllers\Lms\EnrollmentController::class, 'index'])
+            ->name('lms.enrollments.index')->middleware('can:review-enrollments');
+        Route::get('/lms/students/applications/{application}', [\App\Http\Controllers\Lms\EnrollmentController::class, 'show'])
+            ->name('lms.enrollments.show')->middleware('can:review-enrollments');
+        Route::post('/lms/students/applications/{application}/approve', [\App\Http\Controllers\Lms\EnrollmentController::class, 'approve'])
+            ->name('lms.enrollments.approve')->middleware('can:review-enrollments');
+        Route::get('/lms/students/applications/{application}/approved', [\App\Http\Controllers\Lms\EnrollmentController::class, 'approved'])
+            ->name('lms.enrollments.approved')->middleware('can:review-enrollments');
+        Route::post('/lms/students/applications/{application}/reject', [\App\Http\Controllers\Lms\EnrollmentController::class, 'reject'])
+            ->name('lms.enrollments.reject')->middleware('can:review-enrollments');
     });
 
     // 5. Public catch-all — MUST be the last route in this group.

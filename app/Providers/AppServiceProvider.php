@@ -52,5 +52,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('manage-site', function (User $user) {
             return $user->isOwner();
         });
+        // ENROLL-3 (D164) — student application review queue. Owner + secretary.
+        Gate::define('review-enrollments', function (User $user) {
+            return $user->isOwner() || $user->isSecretary();
+        });
     }
 }

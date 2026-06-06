@@ -34,6 +34,12 @@
             Practical Sessions
         </a>
     @endcan
+    @can('review-enrollments')
+        <a href="{{ route('lms.enrollments.index') }}"
+           class="mt-1 flex items-center rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('lms.enrollments.*') ? 'bg-primary text-white' : 'text-white/70 hover:bg-primary/40' }}">
+            Enrollments
+        </a>
+    @endcan
     @can('preview-reports')
         <a href="{{ route('lms.reports.index') }}"
            class="mt-1 flex items-center rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('lms.reports.*') ? 'bg-primary text-white' : 'text-white/70 hover:bg-primary/40' }}">

@@ -294,7 +294,7 @@
         <div class="mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 px-6 py-10 text-sm text-neutral/60 sm:flex-row sm:items-center">
             <div>
                 <div class="text-base font-bold text-primary-dark">Drive<span class="text-accent">CM</span></div>
-                <div class="mt-1 text-xs">© {{ now()->year }} Skye8 Company Ltd. All rights reserved.</div>
+                <div class="mt-1 text-xs">© {{ now()->year }} BlueApex Ltd. All rights reserved.</div>
             </div>
             <div class="flex items-center gap-4 text-xs">
                 <a href="{{ route('apply.create') }}" class="hover:text-neutral">Apply your school</a>

@@ -53,7 +53,7 @@
                         class="mt-1 w-full rounded-lg border border-neutral/20 px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium">Phone</label>
+                    <label class="block text-sm font-medium">Phone (Must be whatsapp number)</label>
                     <input type="text" name="contact_phone" value="{{ old('contact_phone') }}"
                         class="mt-1 w-full rounded-lg border border-neutral/20 px-3 py-2 text-sm">
                 </div>

@@ -57,9 +57,14 @@
                 </div>
             @endif
 
-            <div class="mt-4 text-xs text-neutral/40">
-                Powered by
-                <a href="https://drivecm.cm" class="font-medium text-blue-600 hover:underline">DriveCM</a>
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <a href="{{ route('register.create') }}" class="font-medium text-primary hover:underline">
+                    Apply to enroll →
+                </a>
+                <span class="text-neutral/40">
+                    Powered by
+                    <a href="https://drivecm.cm" class="font-medium text-blue-600 hover:underline">DriveCM</a>
+                </span>
             </div>
         </div>
     </footer>
