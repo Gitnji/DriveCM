@@ -133,6 +133,14 @@ Route::middleware(['tenant.only', 'tenant.resolve', 'tenant.session'])->group(fu
         Route::post('/lms/staff/{id}/restore', [\App\Http\Controllers\Lms\StaffController::class, 'restore'])
             ->name('lms.staff.restore')->middleware('can:manage-staff');
 
+        // L2 — self-service profile + voluntary password change (D170).
+        Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'show'])
+            ->name('profile.show');
+        Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])
+            ->name('profile.update');
+        Route::put('/profile/password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])
+            ->name('profile.password.update');
+
         // Lessons
         Route::get('/lms/lessons', [\App\Http\Controllers\Lms\LessonController::class, 'index'])
             ->name('lms.lessons.index')->middleware('can:author-lessons');
@@ -168,6 +176,12 @@ Route::middleware(['tenant.only', 'tenant.resolve', 'tenant.session'])->group(fu
             ->name('lms.questions.update')->middleware('can:author-lessons');
         Route::delete('/lms/lessons/{lesson}/questions/{question}', [\App\Http\Controllers\Lms\QuestionController::class, 'destroy'])
             ->name('lms.questions.destroy')->middleware('can:author-lessons');
+        Route::post('/lms/lessons/{lesson}/questions/{question}/reorder/{direction}', [\App\Http\Controllers\Lms\QuestionController::class, 'reorder'])
+            ->name('lms.questions.reorder')->middleware('can:author-lessons')
+            ->where('direction', 'up|down');
+        Route::post('/lms/lessons/{lesson}/reorder/{direction}', [\App\Http\Controllers\Lms\LessonController::class, 'reorder'])
+            ->name('lms.lessons.reorder')->middleware('can:author-lessons')
+            ->where('direction', 'up|down');
 
         // Practical
         Route::get('/lms/practical', [\App\Http\Controllers\Lms\PracticalSessionController::class, 'index'])

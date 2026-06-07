@@ -8,6 +8,7 @@ use App\Http\Requests\Lms\StoreLessonRequest;
 use App\Http\Requests\Lms\UpdateLessonRequest;
 use App\Models\Lesson;
 use App\Models\Level;
+use Illuminate\Support\Facades\DB;
 
 class LessonController extends Controller
 {
@@ -68,5 +69,38 @@ class LessonController extends Controller
         return redirect()
             ->route('lms.lessons.index')
             ->with('status', __('Lesson deleted.'));
+    }
+
+    /**
+     * L4 — reorder a lesson within its level by swapping position values with the
+     * adjacent lesson (previous or next, depending on direction). Atomic.
+     */
+    public function reorder(Lesson $lesson, string $direction)
+    {
+        abort_unless(in_array($direction, ['up', 'down'], true), 404);
+
+        // Find the adjacent lesson in the same level.
+        $adjacent = Lesson::where('level_id', $lesson->level_id)
+            ->when($direction === 'up',
+                fn ($q) => $q->where('position', '<', $lesson->position)->orderByDesc('position'),
+                fn ($q) => $q->where('position', '>', $lesson->position)->orderBy('position')
+            )
+            ->first();
+
+        // No-op if already at the edge.
+        if (! $adjacent) {
+            return redirect()->route('lms.lessons.index');
+        }
+
+        DB::transaction(function () use ($lesson, $adjacent) {
+            $a = $lesson->position;
+            $b = $adjacent->position;
+            $lesson->update(['position' => $b]);
+            $adjacent->update(['position' => $a]);
+        });
+
+        return redirect()
+            ->route('lms.lessons.index')
+            ->with('status', __('Lesson order updated.'));
     }
 }

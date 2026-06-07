@@ -21,7 +21,7 @@
 
        {{-- Existing questions --}}
         <div class="mt-6 space-y-2">
-            @forelse ($questions as $q)
+            @forelse ($questions as $i => $q)
                 @php
                     $editPayload = [
                         'type' => $q->type,
@@ -30,10 +30,37 @@
                         'image_upload_id' => $q->image_upload_id,
                         'image_url' => $q->image ? route('lms.uploads.show', $q->image) : null,
                     ];
+                    // L5 — first/last detection for reorder arrow disable state.
+                    $isFirst = $i === 0;
+                    $isLast  = $i === $questions->count() - 1;
                 @endphp
                 <div class="rounded-xl border border-neutral/10 bg-white p-4">
                     <div class="flex items-start justify-between">
                         <div class="flex items-start gap-3">
+                            {{-- L5 — reorder arrows --}}
+                            <div class="flex flex-col gap-0.5 pt-1">
+                                <form method="POST" action="{{ route('lms.questions.reorder', [$lesson, $q, 'up']) }}">
+                                    @csrf
+                                    <button type="submit" @disabled($isFirst) title="Move up"
+                                            class="rounded p-1 text-neutral/40 hover:text-primary disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:text-neutral/40">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                             stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
+                                            <polyline points="18 15 12 9 6 15"/>
+                                        </svg>
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ route('lms.questions.reorder', [$lesson, $q, 'down']) }}">
+                                    @csrf
+                                    <button type="submit" @disabled($isLast) title="Move down"
+                                            class="rounded p-1 text-neutral/40 hover:text-primary disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:text-neutral/40">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                             stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
+                                            <polyline points="6 9 12 15 18 9"/>
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
+
                             {{-- P3b — tiny image preview thumbnail in the list --}}
                             @if ($q->image)
                                 <img src="{{ route('lms.uploads.show', $q->image) }}" alt=""

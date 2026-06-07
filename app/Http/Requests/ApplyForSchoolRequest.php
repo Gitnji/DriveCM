@@ -25,7 +25,7 @@ class ApplyForSchoolRequest extends FormRequest
                 Rule::unique('tenants', 'desired_subdomain'),
             ],
             'contact_name' => ['required', 'string', 'max:120'],
-            'contact_email' => ['required', 'email', 'max:160'],
+            'contact_email' => ['required', 'email:rfc,dns', 'max:160'],
             'contact_phone' => ['nullable', 'string', 'max:40'],
             'applicant_town' => ['required', 'string', 'max:80'],
 

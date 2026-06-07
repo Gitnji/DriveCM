@@ -93,4 +93,36 @@ class QuestionController extends Controller
             }
         });
     }
+
+    /**
+     * L5 — reorder a question within its lesson by swapping position values with the
+     * adjacent question. Atomic.
+     */
+    public function reorder(Lesson $lesson, Question $question, string $direction)
+    {
+        abort_unless($question->lesson_id === $lesson->id, 404);
+        abort_unless(in_array($direction, ['up', 'down'], true), 404);
+
+        $adjacent = Question::where('lesson_id', $lesson->id)
+            ->when($direction === 'up',
+                fn ($q) => $q->where('position', '<', $question->position)->orderByDesc('position'),
+                fn ($q) => $q->where('position', '>', $question->position)->orderBy('position')
+            )
+            ->first();
+
+        if (! $adjacent) {
+            return redirect()->route('lms.questions.index', $lesson);
+        }
+
+        DB::transaction(function () use ($question, $adjacent) {
+            $a = $question->position;
+            $b = $adjacent->position;
+            $question->update(['position' => $b]);
+            $adjacent->update(['position' => $a]);
+        });
+
+        return redirect()
+            ->route('lms.questions.index', $lesson)
+            ->with('status', __('Question order updated.'));
+    }
 }

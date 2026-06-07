@@ -42,11 +42,22 @@
                 @include('layouts.partials.tenant-nav')
             </div>
 
-            {{-- User info + sign out at bottom --}}
+          {{-- User info + profile + sign out at bottom --}}
             <div class="border-t border-white/10 px-3 py-3">
                 <div class="px-2 pb-2 text-xs text-white/50">Signed in as</div>
                 <div class="px-2 pb-3 text-sm font-medium text-white">{{ auth()->user()->name }}</div>
-                <form method="POST" action="{{ route('login.destroy') }}">
+
+                <a href="{{ route('profile.show') }}"
+                   class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('profile.*') ? 'bg-primary text-white' : 'text-white/70 hover:bg-white/10 hover:text-white' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    Profile
+                </a>
+
+                <form method="POST" action="{{ route('login.destroy') }}" class="mt-1">
                     @csrf
                     <button type="submit"
                             class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white">
