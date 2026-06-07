@@ -192,6 +192,12 @@ Route::middleware(['tenant.only', 'tenant.resolve', 'tenant.session'])->group(fu
             ->name('lms.practical.store')->middleware('can:schedule-practical');
         Route::put('/lms/practical/{session}/mark', [\App\Http\Controllers\Lms\PracticalSessionController::class, 'mark'])
             ->name('lms.practical.mark')->middleware('can:schedule-practical');
+        
+            // FLOW A P4 — student Payments page.
+        Route::get('/payments', [\App\Http\Controllers\StudentPaymentController::class, 'index'])
+            ->name('student.payments.index')->middleware('can:access-student-lessons');
+        Route::post('/payments/submit', [\App\Http\Controllers\StudentPaymentController::class, 'submit'])
+            ->name('student.payments.submit')->middleware('can:access-student-lessons');
 
         // Reports
         Route::get('/lms/reports', [\App\Http\Controllers\Lms\ReportController::class, 'index'])
@@ -287,6 +293,20 @@ Route::middleware(['tenant.only', 'tenant.resolve', 'tenant.session'])->group(fu
             ->name('lms.payment-settings.edit')->middleware('can:manage-payments');
         Route::put('/lms/payment-settings', [\App\Http\Controllers\Lms\PaymentSettingsController::class, 'update'])
             ->name('lms.payment-settings.update')->middleware('can:manage-payments');
+
+        // FLOW A P5 — payment review queue (owner + secretary).
+        Route::get('/lms/payment-reviews', [\App\Http\Controllers\Lms\PaymentReviewController::class, 'index'])
+            ->name('lms.payment-reviews.index')->middleware('can:review-payments');
+        Route::get('/lms/payment-reviews/manual/create', [\App\Http\Controllers\Lms\PaymentReviewController::class, 'manualCreate'])
+            ->name('lms.payment-reviews.manual.create')->middleware('can:review-payments');
+        Route::post('/lms/payment-reviews/manual', [\App\Http\Controllers\Lms\PaymentReviewController::class, 'manualStore'])
+            ->name('lms.payment-reviews.manual.store')->middleware('can:review-payments');
+        Route::get('/lms/payment-reviews/{payment}', [\App\Http\Controllers\Lms\PaymentReviewController::class, 'show'])
+            ->name('lms.payment-reviews.show')->middleware('can:review-payments');
+        Route::post('/lms/payment-reviews/{payment}/approve', [\App\Http\Controllers\Lms\PaymentReviewController::class, 'approve'])
+            ->name('lms.payment-reviews.approve')->middleware('can:review-payments');
+        Route::post('/lms/payment-reviews/{payment}/reject', [\App\Http\Controllers\Lms\PaymentReviewController::class, 'reject'])
+            ->name('lms.payment-reviews.reject')->middleware('can:review-payments');
     });
 
     // 5. Public catch-all — MUST be the last route in this group.

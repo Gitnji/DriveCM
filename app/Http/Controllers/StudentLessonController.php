@@ -29,10 +29,9 @@ class StudentLessonController extends Controller
     {
         $student = Auth::guard('web')->user();
 
-        // P3 — if blocked by payment, redirect to dashboard (P4 will retarget to /payments).
+        // P3 → P4 — if blocked by payment, redirect to the student Payments page.
         if ($paymentStatus->isStudentBlocked($student)) {
-            return redirect()->route('dashboard')
-                ->with('payment_overdue', true);
+            return redirect()->route('student.payments.index');
         }
 
         abort_unless(

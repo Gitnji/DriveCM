@@ -28,6 +28,12 @@
             My Lessons
         </a>
     @endcan
+    @if (auth()->user()?->isStudent())
+        <a href="{{ route('student.payments.index') }}"
+           class="mt-1 flex items-center rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('student.payments.*') ? 'bg-primary text-white' : 'text-white/70 hover:bg-primary/40' }}">
+            My Payments
+        </a>
+    @endif
     @can('access-student-lessons')
         <a href="{{ route('student.practical.index') }}"
            class="mt-1 flex items-center rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('student.practical.*') ? 'bg-primary text-white' : 'text-white/70 hover:bg-primary/40' }}">
@@ -58,9 +64,15 @@
             License Reports
         </a>
     @endcan
-    @can('manage-payments')
+    @php
+        $canManagePayments  = Gate::check('manage-payments');
+        $canReviewPayments  = Gate::check('review-payments');
+    @endphp
+    @if ($canManagePayments || $canReviewPayments)
         @php
-            $paymentsOpen = request()->routeIs('lms.payment-types.*') || request()->routeIs('lms.payment-settings.*');
+            $paymentsOpen = request()->routeIs('lms.payment-types.*')
+                || request()->routeIs('lms.payment-settings.*')
+                || request()->routeIs('lms.payment-reviews.*');
         @endphp
         <div class="mt-1" data-nav-dropdown @if ($paymentsOpen) data-open @endif>
             <button type="button" data-nav-dropdown-toggle
@@ -73,17 +85,25 @@
                 </svg>
             </button>
             <div data-nav-dropdown-panel class="{{ $paymentsOpen ? '' : 'hidden' }} ml-2 mt-1 border-l border-white/10 pl-2">
-                <a href="{{ route('lms.payment-types.index') }}"
-                   class="flex items-center rounded-lg px-3 py-2 text-sm {{ request()->routeIs('lms.payment-types.*') ? 'bg-primary text-white font-medium' : 'text-white/60 hover:bg-primary/40 hover:text-white' }}">
-                    Types
-                </a>
-                <a href="{{ route('lms.payment-settings.edit') }}"
-                   class="mt-0.5 flex items-center rounded-lg px-3 py-2 text-sm {{ request()->routeIs('lms.payment-settings.*') ? 'bg-primary text-white font-medium' : 'text-white/60 hover:bg-primary/40 hover:text-white' }}">
-                    Receiving accounts
-                </a>
+                @if ($canManagePayments)
+                    <a href="{{ route('lms.payment-types.index') }}"
+                       class="flex items-center rounded-lg px-3 py-2 text-sm {{ request()->routeIs('lms.payment-types.*') ? 'bg-primary text-white font-medium' : 'text-white/60 hover:bg-primary/40 hover:text-white' }}">
+                        Types
+                    </a>
+                    <a href="{{ route('lms.payment-settings.edit') }}"
+                       class="mt-0.5 flex items-center rounded-lg px-3 py-2 text-sm {{ request()->routeIs('lms.payment-settings.*') ? 'bg-primary text-white font-medium' : 'text-white/60 hover:bg-primary/40 hover:text-white' }}">
+                        Receiving accounts
+                    </a>
+                @endif
+                @if ($canReviewPayments)
+                    <a href="{{ route('lms.payment-reviews.index') }}"
+                       class="mt-0.5 flex items-center rounded-lg px-3 py-2 text-sm {{ request()->routeIs('lms.payment-reviews.*') ? 'bg-primary text-white font-medium' : 'text-white/60 hover:bg-primary/40 hover:text-white' }}">
+                        Reviews
+                    </a>
+                @endif
             </div>
         </div>
-    @endcan
+    @endif
     @can('manage-site')
         <a href="{{ route('site.pages.index') }}"
            class="mt-1 flex items-center rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('site.pages.*') ? 'bg-primary text-white' : 'text-white/70 hover:bg-primary/40' }}">
