@@ -22,6 +22,9 @@ class Tenant extends Model implements TenantContract
         'contact_name', 'contact_email', 'contact_phone',
         'applicant_town', 'desired_subdomain',
         'submitted_at', 'reviewed_at', 'reviewed_by', 'rejection_reason',
+        'momo_number',
+        'orange_number',
+        'payment_instructions',
     ];
 
     protected $casts = [

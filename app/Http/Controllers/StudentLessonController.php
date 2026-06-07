@@ -6,21 +6,34 @@ use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\PracticalSession;
 use App\Services\LessonProgression;
+use App\Services\PaymentStatus;
 use Illuminate\Support\Facades\Auth;
 
 class StudentLessonController extends Controller
 {
-    public function index(LessonProgression $progression)
+    public function index(LessonProgression $progression, PaymentStatus $paymentStatus)
     {
         $student = Auth::guard('web')->user();
         $tree = $progression->forStudent($student);
 
-        return view('student.lessons.index', ['tree' => $tree]);
+        // P3 — surface pending required payments to the view for the banner.
+        $pendingPayments = $paymentStatus->pendingRequiredPayments($student);
+
+        return view('student.lessons.index', [
+            'tree' => $tree,
+            'pendingPayments' => $pendingPayments,
+        ]);
     }
 
-    public function show(Lesson $lesson, LessonProgression $progression)
+    public function show(Lesson $lesson, LessonProgression $progression, PaymentStatus $paymentStatus)
     {
         $student = Auth::guard('web')->user();
+
+        // P3 — if blocked by payment, redirect to dashboard (P4 will retarget to /payments).
+        if ($paymentStatus->isStudentBlocked($student)) {
+            return redirect()->route('dashboard')
+                ->with('payment_overdue', true);
+        }
 
         abort_unless(
             $progression->isLessonAccessible($student, $lesson->id),
@@ -39,10 +52,8 @@ class StudentLessonController extends Controller
             ->orderByDesc('scheduled_at')
             ->get();
 
-        // D89 — practical hours: sum of duration over completed sessions.
         $practicalMinutes = $sessions->where('status', 'completed')->sum('duration_minutes');
 
-        // D40 — theory hours: sum of duration over completed lessons.
         $completedLessonIds = LessonProgress::where('user_id', $student->id)
             ->where('completed', true)
             ->pluck('lesson_id');

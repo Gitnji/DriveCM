@@ -64,5 +64,13 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('manage-students', function (User $user) {
             return $user->isOwner() || $user->isSecretary();
         });
+        // FLOW A (P1/P5) — payment management. Owner configures the catalog; both
+        // owner and secretary review payment submissions.
+        Gate::define('manage-payments', function (User $user) {
+            return $user->isOwner();
+        });
+        Gate::define('review-payments', function (User $user) {
+            return $user->isOwner() || $user->isSecretary();
+        });
     }
 }

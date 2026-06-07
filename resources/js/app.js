@@ -1,6 +1,7 @@
 import { createBlockEditor } from './block-editor.js';
 import { createPageEditor } from './page-editor.js';
 import { createQuestionEditor } from './question-editor.js';
+import './sidebar-dropdown.js';
 
 // Lesson block editor (D58)
 document.querySelectorAll('[data-block-editor]').forEach((el) => {

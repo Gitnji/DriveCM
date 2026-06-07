@@ -26,7 +26,6 @@ class LessonProgression
         foreach ($levels as $level) {
             $levelOpen = $previousLevelComplete;
             $lessons = $level->lessons;
-
             $lessonRows = [];
             $allPassed = true;
             $previousLessonComplete = true;
@@ -66,8 +65,20 @@ class LessonProgression
         return $tree;
     }
 
+    /**
+     * P3 (Flow A) — lesson access gate. Now checks payment block before progression.
+     * If student is blocked by an unpaid required payment, ALL lessons are inaccessible
+     * (harsh block — even completed lessons for review).
+     */
     public function isLessonAccessible(User $student, int $lessonId): bool
     {
+        // P3 — payment gate fires before progression gate. Resolved via container
+        // to avoid circular constructor dependency.
+        $paymentStatus = app(PaymentStatus::class);
+        if ($paymentStatus->isStudentBlocked($student)) {
+            return false;
+        }
+
         foreach ($this->forStudent($student) as $levelRow) {
             foreach ($levelRow['lessons'] as $row) {
                 if ($row['lesson']->id === $lessonId) {
@@ -87,11 +98,9 @@ class LessonProgression
         $tree = $this->forStudent($student);
         $firstN = array_slice($tree, 0, $count);
 
-        // Fewer than N levels exist -> treat as not gated-out (don't freeze on missing levels).
         if (count($firstN) < $count) {
             return true;
         }
-
         foreach ($firstN as $levelRow) {
             if ($levelRow['state'] !== 'complete') {
                 return false;

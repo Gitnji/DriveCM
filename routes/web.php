@@ -265,6 +265,28 @@ Route::middleware(['tenant.only', 'tenant.resolve', 'tenant.session'])->group(fu
             ->name('lms.students.destroy')->middleware('can:manage-students');
         Route::post('/lms/students/{id}/restore', [\App\Http\Controllers\Lms\StudentController::class, 'restore'])
             ->name('lms.students.restore')->middleware('can:manage-students');
+
+        // FLOW A P1 — payment types catalog (owner manages).
+        Route::get('/lms/payment-types', [\App\Http\Controllers\Lms\PaymentTypeController::class, 'index'])
+            ->name('lms.payment-types.index')->middleware('can:manage-payments');
+        Route::get('/lms/payment-types/create', [\App\Http\Controllers\Lms\PaymentTypeController::class, 'create'])
+            ->name('lms.payment-types.create')->middleware('can:manage-payments');
+        Route::post('/lms/payment-types', [\App\Http\Controllers\Lms\PaymentTypeController::class, 'store'])
+            ->name('lms.payment-types.store')->middleware('can:manage-payments');
+        Route::get('/lms/payment-types/{paymentType}/edit', [\App\Http\Controllers\Lms\PaymentTypeController::class, 'edit'])
+            ->name('lms.payment-types.edit')->middleware('can:manage-payments');
+        Route::put('/lms/payment-types/{paymentType}', [\App\Http\Controllers\Lms\PaymentTypeController::class, 'update'])
+            ->name('lms.payment-types.update')->middleware('can:manage-payments');
+        Route::delete('/lms/payment-types/{paymentType}', [\App\Http\Controllers\Lms\PaymentTypeController::class, 'destroy'])
+            ->name('lms.payment-types.destroy')->middleware('can:manage-payments');
+        Route::post('/lms/payment-types/{id}/restore', [\App\Http\Controllers\Lms\PaymentTypeController::class, 'restore'])
+            ->name('lms.payment-types.restore')->middleware('can:manage-payments');
+        
+        // P2 — tenant payment receiving info (owner only).
+        Route::get('/lms/payment-settings', [\App\Http\Controllers\Lms\PaymentSettingsController::class, 'edit'])
+            ->name('lms.payment-settings.edit')->middleware('can:manage-payments');
+        Route::put('/lms/payment-settings', [\App\Http\Controllers\Lms\PaymentSettingsController::class, 'update'])
+            ->name('lms.payment-settings.update')->middleware('can:manage-payments');
     });
 
     // 5. Public catch-all — MUST be the last route in this group.

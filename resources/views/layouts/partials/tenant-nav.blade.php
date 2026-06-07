@@ -58,6 +58,32 @@
             License Reports
         </a>
     @endcan
+    @can('manage-payments')
+        @php
+            $paymentsOpen = request()->routeIs('lms.payment-types.*') || request()->routeIs('lms.payment-settings.*');
+        @endphp
+        <div class="mt-1" data-nav-dropdown @if ($paymentsOpen) data-open @endif>
+            <button type="button" data-nav-dropdown-toggle
+                    class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium {{ $paymentsOpen ? 'bg-primary/30 text-white' : 'text-white/70 hover:bg-primary/40' }}">
+                <span>Payments</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round"
+                     class="h-3.5 w-3.5 transition-transform" data-nav-dropdown-chevron>
+                    <polyline points="6 9 12 15 18 9"/>
+                </svg>
+            </button>
+            <div data-nav-dropdown-panel class="{{ $paymentsOpen ? '' : 'hidden' }} ml-2 mt-1 border-l border-white/10 pl-2">
+                <a href="{{ route('lms.payment-types.index') }}"
+                   class="flex items-center rounded-lg px-3 py-2 text-sm {{ request()->routeIs('lms.payment-types.*') ? 'bg-primary text-white font-medium' : 'text-white/60 hover:bg-primary/40 hover:text-white' }}">
+                    Types
+                </a>
+                <a href="{{ route('lms.payment-settings.edit') }}"
+                   class="mt-0.5 flex items-center rounded-lg px-3 py-2 text-sm {{ request()->routeIs('lms.payment-settings.*') ? 'bg-primary text-white font-medium' : 'text-white/60 hover:bg-primary/40 hover:text-white' }}">
+                    Receiving accounts
+                </a>
+            </div>
+        </div>
+    @endcan
     @can('manage-site')
         <a href="{{ route('site.pages.index') }}"
            class="mt-1 flex items-center rounded-lg px-3 py-2 text-sm font-medium {{ request()->routeIs('site.pages.*') ? 'bg-primary text-white' : 'text-white/70 hover:bg-primary/40' }}">
