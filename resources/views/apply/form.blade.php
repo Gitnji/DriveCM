@@ -8,7 +8,9 @@
 </head>
 <body class="bg-surface text-neutral">
     <div class="mx-auto max-w-xl px-6 py-12">
-        <h1 class="text-2xl font-bold text-neutral">Apply your driving school</h1>
+        <a href="{{ route('pricing.show') }}" class="text-sm font-medium text-primary hover:underline">← Pricing</a>
+
+        <h1 class="mt-3 text-2xl font-bold text-neutral">Apply your driving school</h1>
         <p class="mt-2 text-sm text-neutral/60">
             Fill in the details below. We review applications and contact approved schools with login credentials.
         </p>
@@ -62,6 +64,20 @@
                     <input type="text" name="applicant_town" value="{{ old('applicant_town') }}" required
                         class="mt-1 w-full rounded-lg border border-neutral/20 px-3 py-2 text-sm">
                 </div>
+            </div>
+
+            {{-- FB2 — terms agreement (mandatory). --}}
+            <div class="mt-4 rounded-lg border border-neutral/10 bg-white p-4">
+                <label class="flex items-start gap-3 cursor-pointer">
+                    <input type="checkbox" name="terms_agreed" value="1" {{ old('terms_agreed') ? 'checked' : '' }} required
+                           class="mt-0.5 rounded border-neutral/30 text-primary focus:ring-primary">
+                    <div class="text-sm text-neutral">
+                        I have read and agree to the platform fee
+                        of <strong>{{ number_format($settings->monthly_fee_xaf) }} XAF/month</strong>
+                        after a <strong>{{ $settings->free_trial_days }}-day free trial</strong>.
+                        <a href="{{ route('pricing.show') }}" class="text-primary hover:underline">Review terms</a>
+                    </div>
+                </label>
             </div>
 
             {{-- D101 honeypot — off-screen, real users leave blank --}}

@@ -19,6 +19,10 @@ foreach (['localhost', '127.0.0.1', 'drivecm.cm'] as $apexHost) {
     Route::domain($apexHost)->group(function () {
         Route::get('/', [\App\Http\Controllers\ApexController::class, 'show'])->name('apex');
 
+        // FB2 — public pricing/features page, shown before /apply.
+        Route::get('/pricing', [\App\Http\Controllers\ApplicationController::class, 'pricing'])
+            ->name('pricing.show');
+
         Route::get('/apply', [\App\Http\Controllers\ApplicationController::class, 'create'])
             ->name('apply.create');
         Route::post('/apply', [\App\Http\Controllers\ApplicationController::class, 'store'])
@@ -59,6 +63,11 @@ Route::middleware('only.on.domain:admin.lvh.me,admin.drivecm.cm')->group(functio
             ->name('admin.applications.approved');
         Route::post('/admin/applications/{tenant}/reject', [\App\Http\Controllers\Admin\ApplicationController::class, 'reject'])
             ->name('admin.applications.reject');
+        // FB1 — platform settings (super admin only).
+        Route::get('/admin/platform-settings', [\App\Http\Controllers\Admin\PlatformSettingsController::class, 'edit'])
+            ->name('admin.platform-settings.edit');
+        Route::put('/admin/platform-settings', [\App\Http\Controllers\Admin\PlatformSettingsController::class, 'update'])
+            ->name('admin.platform-settings.update');
     });
 });
 

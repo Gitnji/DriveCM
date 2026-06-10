@@ -5,6 +5,7 @@ namespace App\Actions\Admin;
 use App\Actions\SeedTenantLevels;
 use App\Models\Admin;
 use App\Models\AuditLog;
+use App\Models\PlatformSetting;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -24,23 +25,31 @@ class ApproveApplication
         $tempPassword = Str::random(14);
 
         return DB::transaction(function () use ($tenant, $finalSubdomain, $approvedBy, $tempPassword) {
-            // 1) Activate tenant.
-            $tenant->update([
-                'subdomain' => $finalSubdomain,
-                'status' => 'active',
-                'reviewed_at' => now(),
-                'reviewed_by' => $approvedBy->id,
-            ]);
+            $freeTrialDays = PlatformSetting::current()->free_trial_days;
+            $now = now();
 
-            // D116 — register the subdomain in stancl's domains table for both dev (.lvh.me)
-            // and production (.drivecm.cm). stancl's subdomain middleware reads from here.
-            // D116 — register the subdomain in stancl's domains table for both dev (.lvh.me)
-            // and production (.drivecm.cm). stancl's subdomain middleware reads from here.
-            // D119 — register the BARE subdomain label. The subdomain middleware strips any
-            // base domain (.lvh.me / .drivecm.cm) to the first label, so one bare-label row
-            // serves both dev and prod.
+            // 1) Activate tenant + initialize billing state.
+            // Stancl trait workaround: query builder bypasses Eloquent 'saved' event.
+            DB::connection(config('tenancy.database.central_connection', 'pgsql'))
+                ->table('tenants')
+                ->where('id', $tenant->id)
+                ->update([
+                    'subdomain'                    => $finalSubdomain,
+                    'status'                       => 'active',
+                    'reviewed_at'                  => $now,
+                    'reviewed_by'                  => $approvedBy->id,
+                    'billing_status'               => 'active',
+                    'current_billing_period_start' => $now,
+                    'next_billing_due'             => $now->copy()->addDays($freeTrialDays),
+                    'updated_at'                   => $now,
+                ]);
+
+            // Re-fetch the tenant fresh from DB so subsequent code sees the updated state.
+            $tenant->refresh();
+
+            // D116/D119 — register subdomain in stancl's domains table.
             Domain::create([
-                'domain' => $finalSubdomain,
+                'domain'    => $finalSubdomain,
                 'tenant_id' => $tenant->id,
             ]);
 
@@ -49,11 +58,11 @@ class ApproveApplication
             session(['tenant_id' => $tenant->id]);
 
             $owner = User::create([
-                'name' => $tenant->contact_name,
-                'email' => $tenant->contact_email,
-                'password' => $tempPassword,
-                'role' => 'owner',
-                'language' => 'en',
+                'name'                 => $tenant->contact_name,
+                'email'                => $tenant->contact_email,
+                'password'             => $tempPassword,
+                'role'                 => 'owner',
+                'language'             => 'en',
                 'must_change_password' => true,
             ]);
 
@@ -62,20 +71,23 @@ class ApproveApplication
 
             session(['tenant_id' => $previousTenantId]);
 
-            // Audit log.
             AuditLog::create([
-                'tenant_id' => $tenant->id,
-                'actor_type' => 'admin',
-                'actor_id' => $approvedBy->id,
-                'action' => 'application.approved',
+                'tenant_id'    => $tenant->id,
+                'actor_type'   => 'admin',
+                'actor_id'     => $approvedBy->id,
+                'action'       => 'application.approved',
                 'subject_type' => 'tenant',
-                'subject_id' => $tenant->id,
-                'detail' => ['owner_user_id' => $owner->id, 'subdomain' => $finalSubdomain],
+                'subject_id'   => $tenant->id,
+                'detail'       => [
+                    'owner_user_id'   => $owner->id,
+                    'subdomain'       => $finalSubdomain,
+                    'free_trial_days' => $freeTrialDays,
+                ],
             ]);
 
             return [
-                'tenant' => $tenant->fresh(),
-                'owner_email' => $owner->email,
+                'tenant'        => $tenant->fresh(),
+                'owner_email'   => $owner->email,
                 'temp_password' => $tempPassword,
             ];
         });

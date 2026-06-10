@@ -65,9 +65,9 @@
         <nav class="flex items-center gap-3 text-sm">
             <a href="#features" class="hidden text-neutral/70 hover:text-neutral sm:inline">Features</a>
             <a href="#how-it-works" class="hidden text-neutral/70 hover:text-neutral sm:inline">How it works</a>
-            <a href="{{ route('apply.create') }}"
+            <a href="{{ route('pricing.show') }}"
                class="rounded-full bg-primary-dark px-4 py-2 font-semibold text-white shadow-lg shadow-primary-dark/20 hover:bg-primary">
-                Apply your school
+                Enroll my school
             </a>
         </nav>
     </header>
@@ -92,9 +92,9 @@
                         DriveCM brings theory lessons, practical sessions, Ministry reports, and your school's public website into one platform — designed for the realities of running a school in Bamenda, Yaoundé, or anywhere in Cameroon.
                     </p>
                     <div class="mt-8 flex flex-wrap items-center gap-3">
-                        <a href="{{ route('apply.create') }}"
+                        <a href="{{ route('pricing.show') }}"
                            class="group inline-flex items-center gap-2 rounded-full bg-primary-dark px-6 py-3 text-sm font-semibold text-white shadow-xl shadow-primary-dark/25 transition hover:bg-primary">
-                            Apply your school
+                            Enroll my school
                             <span class="transition-transform group-hover:translate-x-0.5">→</span>
                         </a>
                         <a href="#features" class="rounded-full px-5 py-3 text-sm font-medium text-neutral/70 hover:text-neutral">
@@ -264,7 +264,7 @@
             <p class="mx-auto mt-4 max-w-xl text-base text-white/70">
                 We're working with schools across Cameroon to find pricing that's fair for every size of operation. Talk to us about what works for you.
             </p>
-            <a href="{{ route('apply.create') }}"
+            <a href="{{ route('pricing.show') }}"
                class="mt-8 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-primary-dark shadow-xl transition hover:bg-accent/90">
                 Contact us
                 <span>→</span>
@@ -281,10 +281,9 @@
             <p class="mx-auto mt-4 max-w-xl text-base text-neutral/70">
                 Made in Bamenda, built for Cameroonian driving schools.
             </p>
-            <a href="{{ route('apply.create') }}"
-               class="group mt-8 inline-flex items-center gap-2 rounded-full bg-primary-dark px-7 py-3.5 text-sm font-semibold text-white shadow-xl shadow-primary-dark/25 transition hover:bg-primary">
-                Apply your school
-                <span class="transition-transform group-hover:translate-x-0.5">→</span>
+            <a href="{{ route('pricing.show') }}"class="group inline-flex items-center gap-2 rounded-full bg-primary-dark px-6 py-3 text-sm font-semibold text-white shadow-xl shadow-primary-dark/25 transition hover:bg-primary">
+                 Enroll my school
+            <span class="transition-transform group-hover:translate-x-0.5">→</span>
             </a>
         </div>
     </section>
@@ -297,7 +296,7 @@
                 <div class="mt-1 text-xs">© {{ now()->year }} BlueApex Ltd. All rights reserved.</div>
             </div>
             <div class="flex items-center gap-4 text-xs">
-                <a href="{{ route('apply.create') }}" class="hover:text-neutral">Apply your school</a>
+                <a href="{{ route('pricing.show') }}" class="hover:text-neutral">Apply your school</a>
             </div>
         </div>
     </footer>

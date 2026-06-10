@@ -3,31 +3,58 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ApplyForSchoolRequest;
+use App\Models\PlatformSetting;
 use App\Models\Tenant;
 
 class ApplicationController extends Controller
 {
+    /**
+     * FB2 — Public pricing/features page. Shown before /apply so schools see fees + free
+     * trial + features before applying.
+     */
+    public function pricing()
+    {
+        return view('apply.pricing', [
+            'settings' => PlatformSetting::current(),
+        ]);
+    }
+
     public function create()
     {
-        return view('apply.form');
+        return view('apply.form', [
+            'settings' => PlatformSetting::current(),
+        ]);
     }
 
     public function store(ApplyForSchoolRequest $request)
     {
         $data = $request->validated();
+        $now = now();
 
-        Tenant::create([
-            'name' => $data['school_name'],
-            'status' => 'pending',
-            'desired_subdomain' => $data['desired_subdomain'],
-            'contact_name' => $data['contact_name'],
-            'contact_email' => $data['contact_email'],
-            'contact_phone' => $data['contact_phone'] ?? null,
-            'applicant_town' => $data['applicant_town'],
-            'submitted_at' => now(),
-            // subdomain stays null until approval (D96)
-            // tenant id (UUID) auto-set by the model's creating hook
-        ]);
+        // FB2 — bypass Eloquent save events. The stancl InvalidatesTenantsResolverCache
+        // trait fires on the 'saved' Eloquent event and chokes on a null tenant during
+        // apex-context tenant creation. Insert via query builder, manually generating
+        // the UUID that the model's creating hook would normally set.
+        \Illuminate\Support\Facades\DB::connection(config('tenancy.database.central_connection', 'pgsql'))
+            ->table('tenants')
+            ->insert([
+                'id'                => (string) \Illuminate\Support\Str::uuid(),
+                'name'              => $data['school_name'],
+                'status'            => 'pending',
+                'desired_subdomain' => $data['desired_subdomain'],
+                'contact_name'      => $data['contact_name'],
+                'contact_email'     => $data['contact_email'],
+                'contact_phone'     => $data['contact_phone'] ?? null,
+                'applicant_town'    => $data['applicant_town'],
+                'submitted_at'      => $now,
+                'terms_agreed_at'   => $now,
+                // FB1 — billing fields seeded with defaults; ApproveApplication sets them properly on approval.
+                'billing_status'    => 'active',
+                'created_at'        => $now,
+                'updated_at'        => $now,
+                // stancl `data` column (JSON for arbitrary tenant data) — required.
+                'data'              => json_encode([]),
+            ]);
 
         return redirect()->route('apply.submitted');
     }
@@ -39,8 +66,6 @@ class ApplicationController extends Controller
 
     /**
      * DASH-1d / D162 — export all tenant schools as CSV.
-     * Filename: drivecm-schools-{YYYY-MM-DD}.csv.
-     * Streamed to keep memory bounded if the list grows large.
      */
     public function exportCsv()
     {
@@ -61,7 +86,6 @@ class ApplicationController extends Controller
 
         return response()->streamDownload(function () use ($columns) {
             $out = fopen('php://output', 'w');
-            // BOM so Excel reads UTF-8 correctly on Windows
             fwrite($out, "\xEF\xBB\xBF");
             fputcsv($out, $columns);
 
